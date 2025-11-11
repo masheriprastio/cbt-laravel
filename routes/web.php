@@ -113,3 +113,7 @@ Route::delete('tests/{test}/questions/bulk', [QuestionBulkController::class, 'de
 Route::get('/halo', function () {
     return 'Halo';
 });
+
+Route::get('/{any}', function () {
+    return view('spa');
+})->where('any', '.*');
