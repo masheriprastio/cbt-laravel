@@ -15,7 +15,16 @@
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^2.0.0",
         "postcss": "^8.4.31",
+        "sass": "^1.93.3",
         "tailwindcss": "^3.1.0",
         "vite": "^7.0.7"
+    },
+    "dependencies": {
+        "@vitejs/plugin-vue": "^6.0.1",
+        "vite-plugin-vuetify": "^2.1.2",
+        "vue": "^3.5.24",
+        "vue-router": "^4.6.3",
+        "vue3-perfect-scrollbar": "^2.0.0",
+        "vuetify": "^3.10.9"
     }
 }

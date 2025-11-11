@@ -2,6 +2,24 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Teacher\TestController as TeacherTestController;
+use App\Http\Controllers\Teacher\QuestionController as TeacherQuestionController;
+use App\Http\Controllers\Teacher\GradingController as TeacherGradingController;
+use App\Http\Controllers\Student\ExamController as StudentExamController;
+// use App\Http\Controllers\ProfileController;
+
+// use Illuminate\Support\Facades\Route;
+
+Route::middleware(['auth','role:guru'])
+    ->prefix('teacher')
+    ->name('teacher.')
+    ->group(function () {
+        // SPA shell
+        Route::get('{any?}', fn () => view('teacher.spa'))
+            ->where('any', '.*')
+            ->name('spa');
+    });
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -15,9 +33,38 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::resource('tests', TeacherTestController::class)
+             ->names('tests');
+             
 });
 
+
+// Soal
+    Route::get('tests/{test}/questions/create', [TeacherQuestionController::class, 'create'])->name('questions.create');
+    Route::post('tests/{test}/questions', [TeacherQuestionController::class, 'store'])->name('questions.store');
+    Route::delete('questions/{question}', [TeacherQuestionController::class, 'destroy'])->name('questions.destroy');
+
+    // Route::middleware(['auth','role:guru'])
+    // ->prefix('teacher')
+    // ->as('teacher.')
+    // ->group(function () {
+    //     Route::get('/dashboard', [TeacherTestController::class, 'dashboard'])
+    //         ->name('dashboard'); // <-- inilah teacher.dashboard
+    //                  // prefix nama rute: teacher.*
+    //     Route::resource('tests', TeacherTestController::class)
+    //          ->names('tests');       // hasil: teacher.tests.index/create/store/...
+    // });
+
+
 require __DIR__.'/auth.php';
+
+Route::middleware(['auth','role:guru'])
+  ->prefix('teacher')
+  ->as('teacher.')
+  ->group(function () {
+      Route::get('/dashboard', [TeacherTestController::class, 'dashboard'])->name('dashboard');
+      Route::resource('tests', TeacherTestController::class)->names('tests');
+  });
 
 Route::get('/halo', function () {
     return 'Halo';
