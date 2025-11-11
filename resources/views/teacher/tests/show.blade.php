@@ -12,7 +12,15 @@
             <p class="text-sm text-gray-500">Jadwal: {{ $test->starts_at }} — {{ $test->ends_at ?? 'tanpa batas' }}</p>
           @endif
         </div>
-        <a href="{{ route('teacher.questions.create',$test) }}" class="px-3 py-2 bg-blue-600 text-white rounded">Tambah Soal</a>
+        <!-- <a href="{{ route('teacher.questions.create',$test) }}" class="px-3 py-2 bg-blue-600 text-white rounded">Tambah Soal</a> -->
+         <!-- <a class="btn btn-primary" href="{{ route('teacher.questions.bulk.setup', $test) }}"> -->
+          <a class="btn btn-primary" href="{{ route('teacher.questions.bulk.setup', $test) }}">
+  Tambah Soal
+</a>
+
+  Tambah Soal
+</a>
+
       </div>
     </div>
 

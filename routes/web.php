@@ -10,14 +10,17 @@ use App\Http\Controllers\Student\ExamController as StudentExamController;
 
 // use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Teacher\QuestionBulkController;
+
+
+
+
 Route::middleware(['auth','role:guru'])
     ->prefix('teacher')
     ->name('teacher.')
     ->group(function () {
         // SPA shell
-        Route::get('{any?}', fn () => view('teacher.spa'))
-            ->where('any', '.*')
-            ->name('spa');
+
     });
 
 
@@ -35,6 +38,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::resource('tests', TeacherTestController::class)
              ->names('tests');
+
              
 });
 
@@ -64,7 +68,37 @@ Route::middleware(['auth','role:guru'])
   ->group(function () {
       Route::get('/dashboard', [TeacherTestController::class, 'dashboard'])->name('dashboard');
       Route::resource('tests', TeacherTestController::class)->names('tests');
+      Route::get('/questions/select', [TeacherQuestionController::class, 'select'])
+            ->name('questions.select');
+
+            // Ujian (sudah ada)
+        Route::resource('tests', TeacherTestController::class)->names('tests');
+
+        // Soal
+        Route::get('tests/{test}/questions/create', [TeacherQuestionController::class, 'create'])
+            ->name('questions.create');   // => teacher.questions.create
+
+        Route::post('tests/{test}/questions', [TeacherQuestionController::class, 'store'])
+            ->name('questions.store');
+
+        // (opsional) halaman pilih ujian sebelum tambah soal
+        Route::get('questions/select', [TeacherQuestionController::class, 'select'])
+            ->name('questions.select');
+
+            // Bulk input: step 1 → step 2 → store
+            // STEP 1: form pengaturan (GET)
+    Route::get('tests/{test}/questions/bulk/setup',
+      [QuestionBulkController::class, 'setup'])->name('questions.bulk.setup');
+
+    // STEP 2: build N form (POST) — izinkan juga GET agar mudah di-debug
+    Route::match(['POST','GET'], 'tests/{test}/questions/bulk/build',
+      [QuestionBulkController::class, 'build'])->name('questions.bulk.build');
+
+    // STORE (POST)
+    Route::post('tests/{test}/questions/bulk/store',
+      [QuestionBulkController::class, 'store'])->name('questions.bulk.store');
   });
+
 
 Route::get('/halo', function () {
     return 'Halo';

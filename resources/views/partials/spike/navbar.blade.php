@@ -46,13 +46,12 @@
       </a>
 
       {{-- Logout --}}
-      <form method="POST" action="{{ route('logout') }}">
-        @csrf
-        <button class="inline-flex h-10 items-center gap-2 rounded-lg border px-3 hover:bg-slate-50">
-          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/><path d="M13 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"/></svg>
-          <span class="text-sm">Keluar</span>
-        </button>
-      </form>
+      {{-- resources/views/partials/flexy/navbar.blade.php --}}
+<form action="{{ route('logout') }}" method="POST" class="mb-0">
+  @csrf
+  <button class="btn btn-sm btn-outline-danger">Keluar</button>
+</form>
+
     </div>
   </div>
 </header>
