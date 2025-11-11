@@ -93,6 +93,12 @@ public function select(Request $request)
         $test = $question->test;
         $question->delete();
 
+        if ($question->type === 'mcq' && \Illuminate\Support\Facades\Schema::hasColumn('tests', 'mcq_count')) {
+            $test->decrement('mcq_count');
+        } elseif ($question->type === 'essay' && \Illuminate\Support\Facades\Schema::hasColumn('tests', 'essay_count')) {
+            $test->decrement('essay_count');
+        }
+
         return redirect()
             ->route('teacher.tests.show', $test)
             ->with('success','Soal dihapus.');
