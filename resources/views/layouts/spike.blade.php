@@ -8,7 +8,7 @@
   {{-- Muat hanya asset yang ADA --}}
   @vite(['resources/js/app.js']) {{-- Breeze/Tailwind --}}
   {{-- Aktifkan baris di bawah HANYA jika style.scss sudah lengkap --}}
-  {{-- @vite(['resources/js/spike/scss/style.scss']) --}}
+  @vite(['resources/js/spike/src/scss/style.scss'])
 
   @stack('head')
 </head>
