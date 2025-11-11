@@ -1,22 +1,22 @@
 <?php
 
-namespace App\Models;
+ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 class Question extends Model
 {
     protected $fillable = [
-        'test_id', 'type', 'text', 'score', 'sort_order',
-        'answer_key', 'choices', 'created_by',
+        'test_id','type','text','score','sort_order','choices','answer_key','created_by',
     ];
 
     protected $casts = [
-        'choices' => 'array',
+        'choices' => 'array', // <— penting
     ];
 
     public function test()
     {
-        return $this->belongsTo(\App\Models\Test::class);
+        return $this->belongsTo(Test::class);
     }
 }
+

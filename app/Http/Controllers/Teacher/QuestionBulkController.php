@@ -61,20 +61,36 @@ class QuestionBulkController extends Controller
         $validated = $request->validate($rules);
 
         DB::transaction(function () use ($validated, $test) {
+            // foreach ($validated['questions'] as $q) {
+            //     $payload = [
+            //         'test_id'    => $test->id,
+            //         'type'       => $validated['type'],
+            //         'text'       => $q['text'],
+            //         'score'      => $q['score'],
+            //         'sort_order' => $q['sort'] ?? null,
+            //         'created_by' => auth()->id(),
+            //     ];
+            //     if ($validated['type'] === 'mcq') {
+            //         $payload['choices']    = array_values($q['choices']);
+            //         $payload['answer_key'] = $q['answer_key'];
+            //     }
+            //     Question::create($payload);
             foreach ($validated['questions'] as $q) {
-                $payload = [
-                    'test_id'    => $test->id,
-                    'type'       => $validated['type'],
-                    'text'       => $q['text'],
-                    'score'      => $q['score'],
-                    'sort_order' => $q['sort'] ?? null,
-                    'created_by' => auth()->id(),
-                ];
-                if ($validated['type'] === 'mcq') {
-                    $payload['choices']    = array_values($q['choices']);
-                    $payload['answer_key'] = $q['answer_key'];
-                }
-                Question::create($payload);
+    $payload = [
+        'test_id'    => $test->id,
+        'type'       => $validated['type'],
+        'text'       => $q['text'],
+        'score'      => $q['score'],
+        'sort_order' => $q['sort'] ?? null,
+        'created_by' => auth()->id(),
+    ];
+    if ($validated['type']==='mcq') {
+        $payload['choices']    = array_values($q['choices']);
+        $payload['answer_key'] = $q['answer_key'];
+    }
+    \App\Models\Question::create($payload);
+}
+
             }
 
             // opsional: update counter ringkas di tabel tests
@@ -88,6 +104,7 @@ class QuestionBulkController extends Controller
         return redirect()
             ->route('teacher.tests.show', $test)
             ->with('success', 'Soal massal berhasil disimpan.');
+            
     }
 
 public function destroy(Test $test)

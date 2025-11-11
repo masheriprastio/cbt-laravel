@@ -61,7 +61,8 @@ class TestController extends Controller
     {
         $this->authorizeOwner($test);
 
-        $test->load(['questions.options']); // pastikan relasi ada di Model
+        // $test->load(['questions.options']); // pastikan relasi ada di Model
+        $test->load(['questions']); //
         return view('teacher.tests.show', compact('test'));
     }
 
