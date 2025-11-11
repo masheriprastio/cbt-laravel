@@ -46,12 +46,15 @@
                 @endif
               </div>
 
+              
+
               <form method="POST" action="{{ route('teacher.questions.destroy',$q) }}" onsubmit="return confirm('Hapus soal ini?')">
                 @csrf @method('DELETE')
                 <button class="px-3 py-1.5 bg-red-600 text-white rounded">Hapus</button>
               </form>
             </div>
           </li>
+          
         @empty
           <li>Belum ada soal.</li>
         @endforelse

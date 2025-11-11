@@ -96,15 +96,31 @@ class TestController extends Controller
     }
 
     /** Hapus ujian */
-    public function destroy(Test $test)
-    {
-        $this->authorizeOwner($test);
-        $test->delete();
+public function destroy(\App\Models\Test $test)
+{
+    // (opsional) batasi kepemilikan
+    // abort_if($test->created_by !== auth()->id(), 403);
 
-        return redirect()
-            ->route('teacher.tests.index')
-            ->with('success', 'Ujian dihapus.');
-    }
+    \DB::transaction(function () use ($test) {
+        // ambil semua id pertanyaan milik ujian ini
+        $qIds = \DB::table('questions')->where('test_id', $test->id)->pluck('id');
+
+        if ($qIds->isNotEmpty()) {
+            // hapus tabel anak jika FK belum cascade
+            if (\Schema::hasTable('answers') && \Schema::hasColumn('answers','question_id')) {
+                \DB::table('answers')->whereIn('question_id', $qIds)->delete();
+            }
+            // hapus pertanyaan (permanen)
+            \DB::table('questions')->whereIn('id', $qIds)->delete();
+        }
+
+        // terakhir: hapus ujian (permanen)
+        \DB::table('tests')->where('id', $test->id)->delete();
+    });
+
+    return back()->with('success', 'Ujian telah dihapus permanen.');
+}
+
 
     /** (Opsional) Tugaskan ujian ke siswa */
     public function assign(Request $request, Test $test)

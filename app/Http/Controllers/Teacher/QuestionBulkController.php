@@ -91,57 +91,41 @@ class QuestionBulkController extends Controller
     }
 
 public function destroy(Test $test)
-{
-    // (opsional) batasi kepemilikan
-    abort_if($test->created_by !== auth()->id(), 403);
+    {
+        // (opsional) pembatasan pemilik
+        // abort_if($test->created_by !== auth()->id(), 403);
 
-    DB::transaction(function () use ($test) {
-        // ambil id-id question milik test ini
-        $qIds = Question::where('test_id', $test->id)->pluck('id');
+        DB::transaction(function () use ($test) {
+            // Ambil id pertanyaan ujian ini (pakai SQL langsung agar netral thd SoftDeletes)
+            $qIds = DB::table('questions')->where('test_id', $test->id)->pluck('id');
 
-        if ($qIds->isEmpty()) {
-            // reset counter jika ada, lalu selesai
-            $this->resetCounters($test);
-            return;
-        }
+            if ($qIds->isNotEmpty()) {
+                // 1) Hapus tabel anak terlebih dulu bila FK belum cascade
+                if (Schema::hasTable('answers') && Schema::hasColumn('answers','question_id')) {
+                    DB::table('answers')->whereIn('question_id', $qIds)->delete();
+                }
+                // contoh lain jika ada:
+                // if (Schema::hasTable('question_options')) {
+                //     DB::table('question_options')->whereIn('question_id', $qIds)->delete();
+                // }
 
-        // --- HAPUS TABEL ANAK DULU (jika ada) ---
-        // answers.question_id → questions.id
-        if (Schema::hasTable('answers') && Schema::hasColumn('answers','question_id')) {
-            DB::table('answers')->whereIn('question_id', $qIds)->delete();
-        }
+                // 2) Hapus permanen pertanyaan (SQL DELETE, bukan Eloquent)
+                DB::table('questions')->whereIn('id', $qIds)->delete();
+            }
 
-        // contoh lain (jika kamu punya tabel options, grades, attachments, dll.)
-        // if (Schema::hasTable('question_options')) {
-        //     DB::table('question_options')->whereIn('question_id', $qIds)->delete();
-        // }
+            // 3) Sinkronkan counter bila kolom ada
+            $payload = [];
+            if (Schema::hasColumn('tests','mcq_count')) {
+                $payload['mcq_count'] = DB::table('questions')->where('test_id',$test->id)->where('type','mcq')->count();
+            }
+            if (Schema::hasColumn('tests','essay_count')) {
+                $payload['essay_count'] = DB::table('questions')->where('test_id',$test->id)->where('type','essay')->count();
+            }
+            if ($payload) {
+                DB::table('tests')->where('id',$test->id)->update($payload);
+            }
+        });
 
-        // --- HAPUS PERTANYAAN ---
-        // Jika model Question pakai SoftDeletes dan kamu ingin hapus permanen:
-        // Question::withTrashed()->whereIn('id', $qIds)->forceDelete();
-        // Question::whereIn('id', $qIds)->delete();
-        Question::withTrashed()->where('test_id',$test->id)->forceDelete();
-
-
-        // sinkronkan counter
-        $this->resetCounters($test);
-    });
-
-    return back()->with('success', 'Semua soal pada ujian telah dihapus.');
-}
-
-private function resetCounters(Test $test): void
-{
-    // hitung ulang dari DB agar akurat
-    $mcq = Question::where('test_id',$test->id)->where('type','mcq')->count();
-    $essay = Question::where('test_id',$test->id)->where('type','essay')->count();
-
-    // update kalau kolomnya ada
-    $payload = [];
-    if (Schema::hasColumn('tests','mcq_count'))   $payload['mcq_count'] = $mcq;
-    if (Schema::hasColumn('tests','essay_count')) $payload['essay_count'] = $essay;
-
-    if (!empty($payload)) $test->update($payload);
-}
-
+        return back()->with('success','Semua soal pada ujian telah DIHAPUS PERMANEN.');
+    }
 }

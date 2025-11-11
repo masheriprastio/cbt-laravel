@@ -100,7 +100,10 @@ Route::middleware(['auth','role:guru'])
 
        // hapus semua soal untuk 1 ujian (baru)
 Route::delete('tests/{test}/questions/bulk', [QuestionBulkController::class, 'destroy'])
-    ->name('questions.bulk.destroy');
+            ->name('questions.bulk.destroy');
+
+            Route::get('tests/{test}/questions/{question}/edit',  [TeacherQuestionController::class,'edit'])->name('questions.edit');
+    Route::put('tests/{test}/questions/{question}',       [TeacherQuestionController::class,'update'])->name('questions.update');
   });
 
  
