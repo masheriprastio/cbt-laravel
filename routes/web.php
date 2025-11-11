@@ -97,7 +97,14 @@ Route::middleware(['auth','role:guru'])
     // STORE (POST)
     Route::post('tests/{test}/questions/bulk/store',
       [QuestionBulkController::class, 'store'])->name('questions.bulk.store');
+
+       // hapus semua soal untuk 1 ujian (baru)
+Route::delete('tests/{test}/questions/bulk', [QuestionBulkController::class, 'destroy'])
+    ->name('questions.bulk.destroy');
   });
+
+ 
+
 
 
 Route::get('/halo', function () {

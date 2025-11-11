@@ -18,18 +18,27 @@ class QuestionController extends Controller
     }
 
     
-
-    // app/Http/Controllers/Teacher/QuestionController.php
-
 public function select(Request $request)
 {
-    // daftar ujian milik guru login, bisa ditambah filter cari
-    $tests = \App\Models\Test::where('created_by', auth()->id())
-        ->latest()->paginate(12);
+    $q = trim((string) $request->input('q', ''));
 
-    return view('teacher.questions.select', compact('tests'));
+    $tests = Test::query()
+        ->where('created_by', auth()->id())
+        ->when($q !== '', function ($qr) use ($q) {
+            $qr->where('title', 'like', '%'.$q.'%');
+        })
+        // hitung jumlah soal per tipe (kalau belum ada mcq_count/essay_count di tabel)
+        ->withCount([
+            'questions as mcq_cnt'  => fn($x) => $x->where('type','mcq'),
+            'questions as essay_cnt'=> fn($x) => $x->where('type','essay'),
+        ])
+        ->latest('id')
+        ->paginate(12);
+
+    return view('teacher.questions.select', compact('tests','q'));
 }
 
+    // app/Http/Controllers/Teacher/QuestionController.php
 
     // Simpan soal baru
     public function store(\Illuminate\Http\Request $request, \App\Models\Test $test)
@@ -73,6 +82,8 @@ public function select(Request $request)
         ->route('teacher.tests.show', $test)
         ->with('success', 'Soal berhasil ditambahkan.');
 }
+
+
 
 
     // Hapus soal
