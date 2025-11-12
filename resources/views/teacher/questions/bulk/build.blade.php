@@ -44,36 +44,23 @@
                 </div>
 
                 @if ($type === 'mcq')
-                  {{-- Baris Pilihan Ganda --}}
-                  <div class="row mt-3">
-                    <div class="col-12 col-md">
-                      <label class="form-label">Pilihan A</label>
-                      <input type="text" name="questions[{{ $idx }}][choices][0]" class="form-control" required>
-                    </div>
-                    <div class="col-12 col-md">
-                      <label class="form-label">Pilihan B</label>
-                      <input type="text" name="questions[{{ $idx }}][choices][1]" class="form-control" required>
-                    </div>
-                    <div class="col-12 col-md">
-                      <label class="form-label">Pilihan C</label>
-                      <input type="text" name="questions[{{ $idx }}][choices][2]" class="form-control" required>
-                    </div>
-                    <div class="col-12 col-md">
-                      <label class="form-label">Pilihan D</label>
-                      <input type="text" name="questions[{{ $idx }}][choices][3]" class="form-control" required>
-                    </div>
-                    <div class="col-12 col-md">
-                      <label class="form-label">Pilihan E</label>
-                      <input type="text" name="questions[{{ $idx }}][choices][4]" class="form-control" required>
-                    </div>
-                    <div class="col-12 col-md-2">
+                  {{-- Pilihan Ganda (vertikal): tampilkan A..E tiap baris --}}
+                  @php $letters = ['A','B','C','D','E']; @endphp
+                  <div class="mt-3">
+                    <label class="form-label d-block mb-2">Pilihan</label>
+                    @foreach($letters as $i => $letter)
+                      <div class="mb-3">
+                        <label class="form-label">Pilihan {{ $letter }}</label>
+                        <input type="text" name="questions[{{ $idx }}][choices][{{ $i }}]" class="form-control" required>
+                      </div>
+                    @endforeach
+
+                    <div class="mb-3">
                       <label class="form-label">Kunci</label>
                       <select name="questions[{{ $idx }}][answer_key]" class="form-select" required>
-                        <option value="A">A</option>
-                        <option value="B">B</option>
-                        <option value="C">C</option>
-                        <option value="D">D</option>
-                        <option value="E">E</option>
+                        @foreach($letters as $letter)
+                          <option value="{{ $letter }}">{{ $letter }}</option>
+                        @endforeach
                       </select>
                     </div>
                   </div>
