@@ -69,8 +69,13 @@
                       @php $letters = ['A','B','C','D','E']; @endphp
                       <ol type="A" class="small mb-0 ps-3">
                         @foreach (($question->choices ?? []) as $i => $txt)
+                          @php
+                            // Hapus label/prefix pilihan yang disimpan di DB (mis. "A. ", "A) ", "1. ")
+                            $choiceRaw = strip_tags($txt);
+                            $choiceText = preg_replace('/^\s*[A-Za-z0-9][\)\.\-:\s]+/u', '', $choiceRaw);
+                          @endphp
                           <li class="{{ ($letters[$i] ?? '') === $question->answer_key ? 'fw-semibold text-success' : '' }}">
-                            {{ $txt }}
+                            {{ $choiceText }}
                           </li>
                         @endforeach
                       </ol>
