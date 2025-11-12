@@ -87,10 +87,10 @@
 
           <div class="row g-3">
             <div class="col-12 col-md-6">
-              <label for="mcq_count" class="form-label">Jumlah Pilihan Ganda (MCQ) <span class="text-danger">*</span></label>
-              <input type="number" min="0" max="500" id="mcq_count" name="mcq_count"
-                     class="form-control @error('mcq_count') is-invalid @enderror"
-                     value="{{ old('mcq_count', 10) }}" required>
+    <label for="mcq_count" class="form-label">Jumlah Pilihan Ganda (MCQ) <span class="text-danger">*</span></label>
+    <input type="number" min="0" max="500" id="mcq_count" name="mcq_count"
+      class="form-control @error('mcq_count') is-invalid @enderror"
+      value="{{ old('mcq_count', 0) }}" data-initial="0" required>
               @error('mcq_count') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="col-12 col-md-6">
@@ -104,7 +104,7 @@
 
           <div class="d-flex gap-2 mt-4">
             <a href="{{ route('teacher.tests.index') }}" class="btn btn-outline-secondary">Batal</a>
-            <button type="submit" class="btn btn-primary">Simpan & Lanjut Tambah Soal</button>
+            <button type="submit" name="action" value="save_and_add" class="btn btn-primary">Simpan & Lanjut Tambah Soal</button>
           </div>
         </form>
       </div>
@@ -138,6 +138,42 @@ document.addEventListener('DOMContentLoaded', function () {
   function syncMin() { if (s && e && s.value) e.min = s.value; }
   s?.addEventListener('change', syncMin);
   syncMin();
+});
+</script>
+<script>
+// Konfirmasi khusus untuk kasus ketika user memulai dari default 0 ke 1 (atau hanya 1 MCQ)
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('createTestForm');
+  const mcq = document.getElementById('mcq_count');
+
+  form?.addEventListener('submit', function (ev) {
+    try {
+      const mcqVal = mcq ? parseInt(mcq.value || '0', 10) : 0;
+      const mcqInitial = mcq ? parseInt(mcq.dataset.initial || '0', 10) : 0;
+
+      // Jika awalnya 0 dan sekarang hanya diisi 1, tunjukkan peringatan konfirmasi
+      if (mcqInitial === 0 && mcqVal === 1) {
+        const ok = confirm('Anda hanya memasukkan 1 soal Pilihan Ganda. Lanjutkan ke proses tambah soal massal?');
+        if (!ok) {
+          ev.preventDefault();
+          return false;
+        }
+      }
+
+      // Jika jumlah total soal (MCQ+Essay) masih 0, tanyakan apakah tetap ingin membuat ujian kosong
+      const essay = document.getElementById('essay_count');
+      const essayVal = essay ? parseInt(essay.value || '0', 10) : 0;
+      if (mcqVal === 0 && essayVal === 0) {
+        const ok2 = confirm('Anda belum menambahkan jumlah soal (MCQ atau Esai). Buat ujian tanpa soal?');
+        if (!ok2) {
+          ev.preventDefault();
+          return false;
+        }
+      }
+    } catch (err) {
+      // jangan ganggu submit jika ada error JS
+    }
+  });
 });
 </script>
 @endpush

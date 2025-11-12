@@ -51,6 +51,24 @@ class TestController extends Controller
 
         $test = Test::create($data);
 
+        // Jika tombol "Simpan & Lanjut Tambah Soal" ditekan, arahkan ke bulk build
+        if ($request->input('action') === 'save_and_add') {
+            // Prioritaskan MCQ jika ada jumlah > 0
+            $mcq = (int)($data['mcq_count'] ?? 0);
+            $essay = (int)($data['essay_count'] ?? 0);
+
+            if ($mcq > 0) {
+                return redirect()->to(route('teacher.questions.bulk.build', $test) . '?type=mcq&count=' . $mcq);
+            }
+            if ($essay > 0) {
+                return redirect()->to(route('teacher.questions.bulk.build', $test) . '?type=essay&count=' . $essay);
+            }
+            // Jika kedua jumlah 0, tetap kembali ke show dengan pesan
+            return redirect()
+                ->route('teacher.tests.show', $test)
+                ->with('success', 'Ujian dibuat. Tidak ada soal untuk ditambahkan.');
+        }
+
         return redirect()
             ->route('teacher.tests.show', $test)
             ->with('success', 'Ujian dibuat. Silakan tambahkan soal.');
