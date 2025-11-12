@@ -13,11 +13,12 @@
         @csrf
         <input type="hidden" name="type" value="{{ $type }}">
 
+        <div class="row">
         @foreach ($indexes as $idx)
           @php $num = $start + $idx; @endphp
-          <div class="col-12">
-            <div class="card shadow-sm">
-              <div class="card-body">
+          <div class="col-12 col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+              <div class="card-body d-flex flex-column">
                 {{-- Baris Header --}}
                 <div class="row">
                   <div class="col">
@@ -65,10 +66,12 @@
                     </div>
                   </div>
                 @endif
+                </div>
               </div>
             </div>
           </div>
         @endforeach
+        </div>
 
         <div class="col-12 d-flex gap-2">
           <a href="{{ route('teacher.tests.show', $test) }}" class="btn btn-outline-secondary">Batal</a>
