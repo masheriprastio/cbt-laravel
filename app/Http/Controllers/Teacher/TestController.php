@@ -57,22 +57,23 @@ class TestController extends Controller
     }
 
     /** Detail ujian + daftar soal */
-   public function show(\App\Models\Test $test)
-{
-    $test->load(['questions' => function ($q) {
-        $q->orderByRaw('COALESCE(sort_order, 999999), id');
-    }]);
+public function show(Test $test)
+    {
+        // Muat pertanyaan sekali, urut rapi
+        $test->load(['questions' => function ($q) {
+            $q->orderByRaw('COALESCE(sort_order, 999999), id');
+        }]);
 
-    $questions = $test->questions;
+        $questions = $test->questions;
 
-    $counts = [
-        'mcq'   => $questions->where('type','mcq')->count(),
-        'essay' => $questions->where('type','essay')->count(),
-        'total' => $questions->count(),
-    ];
+        $counts = [
+            'mcq'   => $questions->where('type', 'mcq')->count(),
+            'essay' => $questions->where('type', 'essay')->count(),
+            'total' => $questions->count(),
+        ];
 
-    return view('teacher.tests.show', compact('test','questions','counts'));
-}
+        return view('teacher.tests.show', compact('test', 'questions', 'counts'));
+    }
 
 
     /** Form edit ujian */
