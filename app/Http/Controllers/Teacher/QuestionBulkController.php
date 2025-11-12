@@ -90,9 +90,6 @@ class QuestionBulkController extends Controller
     }
     \App\Models\Question::create($payload);
 }
-
-            }
-
             // opsional: update counter ringkas di tabel tests
             if ($validated['type'] === 'mcq') {
                 $test->increment('mcq_count', count($validated['questions']));
