@@ -26,15 +26,13 @@
           <li class="p-3 border rounded">
             <div>{{ $question->text }}</div>
             @if($question->type === 'mcq')
-              @php $letters = ['A','B','C','D','E']; @endphp
               <ol class="list-disc pl-5 mt-2">
-                @foreach($question->choices ?? [] as $i => $text)
-                  <li @if(($letters[$i] ?? '') === $question->answer_key) class="font-semibold text-green-700" @endif>
-                    {{ $text }}
+                @foreach($question->options as $option)
+                  <li @if($option->is_correct) class="font-semibold text-green-700" @endif>
+                    {{ $option->text }}
                   </li>
                 @endforeach
               </ol>
-              <div class="text-sm text-gray-500 mt-1">Kunci: {{ $question->answer_key }}</div>
             @endif
           </li>
         @endforeach

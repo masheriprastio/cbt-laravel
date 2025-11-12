@@ -13,7 +13,7 @@
     {{-- <link rel="stylesheet" href="{{ asset('vendor/flexy/assets/css/icons/tabler-icons.min.css') }}"> --}}
 
     @stack('head')
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/8/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="https://cdn.tiny.cloud/1/{{ config('services.tinymce.api_key') }}/tinymce/8/tinymce.min.js" referrerpolicy="origin"></script>
   </head>
   <body class="bg-body-tertiary">
 
