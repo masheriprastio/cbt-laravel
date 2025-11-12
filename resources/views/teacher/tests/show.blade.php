@@ -22,18 +22,22 @@
     <div class="bg-white p-4 rounded-xl shadow">
       <h3 class="font-semibold mb-3">Daftar Soal</h3>
       <ol class="space-y-3">
-        @if($q->type === 'mcq')
-  @php $letters = ['A','B','C','D','E']; @endphp
-  <ol type="A" class="mb-2">
-    @foreach($q->choices ?? [] as $i => $text)
-      <li class="{{ ($letters[$i] ?? '') === $q->answer_key ? 'fw-semibold text-success' : '' }}">
-        {{ $text }}
-      </li>
-    @endforeach
-  </ol>
-  <div class="small text-secondary">Kunci: {{ $q->answer_key }}</div>
-@endif
-
+        @foreach($test->questions as $question)
+          <li class="p-3 border rounded">
+            <div>{{ $question->text }}</div>
+            @if($question->type === 'mcq')
+              @php $letters = ['A','B','C','D','E']; @endphp
+              <ol class="list-disc pl-5 mt-2">
+                @foreach($question->choices ?? [] as $i => $text)
+                  <li @if(($letters[$i] ?? '') === $question->answer_key) class="font-semibold text-green-700" @endif>
+                    {{ $text }}
+                  </li>
+                @endforeach
+              </ol>
+              <div class="text-sm text-gray-500 mt-1">Kunci: {{ $question->answer_key }}</div>
+            @endif
+          </li>
+        @endforeach
       </ol>
     </div>
   </div>
