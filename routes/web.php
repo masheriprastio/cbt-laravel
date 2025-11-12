@@ -11,6 +11,7 @@ use App\Http\Controllers\Student\ExamController as StudentExamController;
 // use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Teacher\QuestionBulkController;
+use App\Http\Controllers\Teacher\EditorController;
 
 
 
@@ -104,6 +105,7 @@ Route::delete('tests/{test}/questions/bulk', [QuestionBulkController::class, 'de
 
             Route::get('tests/{test}/questions/{question}/edit',  [TeacherQuestionController::class,'edit'])->name('questions.edit');
     Route::put('tests/{test}/questions/{question}',       [TeacherQuestionController::class,'update'])->name('questions.update');
+    Route::post('editor/upload', [EditorController::class, 'upload'])->name('editor.upload');
   });
 
  

@@ -16,7 +16,7 @@
 
       <div>
         <label class="block text-sm font-medium">Teks Soal</label>
-        <textarea name="text" class="w-full border rounded-lg p-2" required></textarea>
+        <textarea name="text" class="w-full border rounded-lg p-2 tinymce-editor" required></textarea>
       </div>
 
       <div class="grid grid-cols-2 gap-4">
@@ -63,4 +63,13 @@
       }));
     </script>
   </div>
+  @push('scripts')
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.initTiny) {
+      window.initTiny('{{ route("teacher.editor.upload") }}');
+    }
+  });
+  </script>
+  @endpush
 </x-app-layout>
