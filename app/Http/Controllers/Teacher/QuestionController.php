@@ -92,9 +92,24 @@ public function update(\Illuminate\Http\Request $request, \App\Models\Test $test
         $payload['answer_key'] = null;
     }
 
-    $question->update($payload);
+    \Illuminate\Support\Facades\DB::transaction(function () use ($question, $payload) {
+        $question->update($payload);
+        if ($question->type === 'mcq') {
+            $letters = range('A', 'E');
+            $options = [];
+            foreach ($payload['choices'] as $idx => $choice) {
+                $options[] = [
+                    'letter'      => $letters[$idx],
+                    'text'        => $choice,
+                    'is_correct'  => $payload['answer_key'] === $letters[$idx],
+                ];
+            }
+            $question->options()->delete();
+            $question->options()->createMany($options);
+        }
+    });
 
-    return redirect()->route('teacher.tests.show', $test)->with('success','Soal diperbarui.');
+    return redirect()->route('teacher.tests.show', $test)->with('success', 'Soal diperbarui.');
 }
 
 
@@ -129,9 +144,23 @@ public function store(\Illuminate\Http\Request $request, \App\Models\Test $test)
         $payload['answer_key'] = $v['answer_key'];
     }
 
-    \App\Models\Question::create($payload);
+    \Illuminate\Support\Facades\DB::transaction(function () use ($payload) {
+        $question = \App\Models\Question::create($payload);
+        if ($question->type === 'mcq') {
+            $letters = range('A', 'E');
+            $options = [];
+            foreach ($payload['choices'] as $idx => $choice) {
+                $options[] = new \App\Models\Option([
+                    'letter'      => $letters[$idx],
+                    'text'        => $choice,
+                    'is_correct'  => $payload['answer_key'] === $letters[$idx],
+                ]);
+            }
+            $question->options()->saveMany($options);
+        }
+    });
 
-    return redirect()->route('teacher.tests.show', $test)->with('success','Soal ditambahkan.');
+    return redirect()->route('teacher.tests.show', $test)->with('success', 'Soal ditambahkan.');
 }
 
 
