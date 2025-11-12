@@ -56,8 +56,13 @@
                 <tr>
                   <td>{{ $question->sort_order ?? $loop->iteration }}</td>
                   <td>
+                    @php
+                      // Hapus penomoran manual di awal teks soal (mis. "1. ..." atau "1) ...")
+                      $raw = strip_tags($question->text);
+                      $displayText = preg_replace('/^\s*\d+[\)\.\-:\s]+/u', '', $raw);
+                    @endphp
                     <div class="fw-semibold mb-1">
-                      {{ Str::limit(strip_tags($question->text), 140) }}
+                      {{ Str::limit($displayText, 140) }}
                     </div>
 
                     @if ($question->type === 'mcq')
