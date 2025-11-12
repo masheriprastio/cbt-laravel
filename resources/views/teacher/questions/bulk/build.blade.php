@@ -13,28 +13,22 @@
         @csrf
         <input type="hidden" name="type" value="{{ $type }}">
 
-        <div class="row">
         @foreach ($indexes as $idx)
           @php $num = $start + $idx; @endphp
-          <div class="col-12 col-lg-6 mb-4">
-            <div class="card shadow-sm h-100 position-relative">
-              <div class="card-body d-flex flex-column pt-4">
-                {{-- Nomor badge --}}
-                <div class="position-absolute top-0 start-0 mt-3 ms-3">
-                  <span class="badge bg-primary">#{{ $num }}</span>
-                </div>
-
-                {{-- Baris Header (kompak): judul di kiri, urutan/skor kecil di kanan --}}
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <h5 class="card-title mb-0">Soal</h5>
-                  <div class="d-flex gap-2 align-items-start">
-                    <div class="text-end">
+          <div class="col-12 mb-4">
+            <div class="card shadow-sm">
+              <div class="card-body">
+                {{-- Header dengan nomor jelas di kiri --}}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h5 class="card-title mb-0"><span class="badge bg-primary me-2">{{ $num }}</span>Soal #{{ $num }}</h5>
+                  <div class="d-flex gap-2">
+                    <div>
                       <div class="small text-muted">Urutan</div>
-                      <input type="number" name="questions[{{ $idx }}][sort]" class="form-control form-control-sm text-end" style="width:80px;" value="{{ $num }}">
+                      <input type="number" name="questions[{{ $idx }}][sort]" class="form-control form-control-sm text-end" style="width:100px;" value="{{ $num }}">
                     </div>
-                    <div class="text-end">
+                    <div>
                       <div class="small text-muted">Skor</div>
-                      <input type="number" name="questions[{{ $idx }}][score]" class="form-control form-control-sm text-end" style="width:80px;" value="{{ $score }}" required>
+                      <input type="number" name="questions[{{ $idx }}][score]" class="form-control form-control-sm text-end" style="width:100px;" value="{{ $score }}" required>
                     </div>
                   </div>
                 </div>
