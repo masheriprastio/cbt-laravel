@@ -26,8 +26,11 @@
           @yield('page_actions')
         </div>
 
-        @includeWhen(session('success'),'partials.flexy.alert-success', ['msg'=>session('success')])
-        @includeWhen($errors->any(),'partials.flexy.alert-errors')
+  @includeWhen(session('success'),'partials.flexy.alert-success', ['msg'=>session('success')])
+  @includeWhen($errors->any(),'partials.flexy.alert-errors')
+
+  {{-- Development diagnostics: shows Bootstrap / TinyMCE asset presence when APP_DEBUG=true --}}
+  @includeIf('partials.flexy.diagnostics')
 
         @yield('content')
       </div>

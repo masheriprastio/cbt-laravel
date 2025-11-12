@@ -16,6 +16,12 @@ import 'tinymce/skins/ui/oxide/skin.min.css';
 import 'tinymce/skins/content/default/content.min.css';
 
 window.initTiny = (uploadUrl = null) => {
+  // Prevent TinyMCE from attempting to load plugins/skins relative to the
+  // current page. If you prefer a different public path, set
+  // `window.tinymceBaseUrl = '/your/path'` before calling initTiny.
+  // Default to the public vendor path where we copy TinyMCE assets.
+  tinymce.baseURL = window.tinymceBaseUrl || '/vendor/tinymce';
+
   tinymce.init({
     selector: 'textarea.tinymce',
     menubar: false,
@@ -27,5 +33,15 @@ window.initTiny = (uploadUrl = null) => {
     convert_urls: false,
     images_upload_url: uploadUrl || undefined,
     images_upload_credentials: true,
+    // Ensure the editor won't be disabled by a missing license manager
+    // during development. If you have a valid TinyMCE license, set it
+    // here (or via window.tinymceLicenseKey) instead of leaving it
+    // blank.
+    license_key: window.tinymceLicenseKey || '',
+    // We import the skin/content CSS via the bundler, so prevent TinyMCE
+    // from trying to load the files at runtime (avoids page-relative
+    // requests for /plugins/... and /skins/...).
+    skin: false,
+    content_css: false,
   });
 };

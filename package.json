@@ -4,7 +4,9 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "copy-tinymce-assets": "mkdir -p public/vendor/tinymce && cp -R node_modules/tinymce/skins public/vendor/tinymce/skins && cp -R node_modules/tinymce/plugins public/vendor/tinymce/plugins && cp -R node_modules/tinymce/themes public/vendor/tinymce/themes && cp -R node_modules/tinymce/icons public/vendor/tinymce/icons || true",
+        "postbuild": "npm run copy-tinymce-assets"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.2",
