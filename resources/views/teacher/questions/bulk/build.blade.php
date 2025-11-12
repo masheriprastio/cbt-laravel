@@ -20,7 +20,7 @@
               <div class="card-body">
                 {{-- Header dengan nomor jelas di kiri --}}
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                  <h5 class="card-title mb-0"><span class="badge bg-primary me-2">{{ $num }}</span>Soal #{{ $num }}</h5>
+                  <h5 class="card-title mb-0"><span class="badge bg-primary me-2">{{ $num }}</span>Soal Nomor {{ $num }}</h5>
                   <div class="d-flex gap-2">
                     <div>
                       <div class="small text-muted">Urutan</div>
@@ -37,7 +37,8 @@
                 <div class="row mt-3">
                   <div class="col-12">
                     <label class="form-label">Isi Soal</label>
-                    <textarea name="questions[{{ $idx }}][text]" class="form-control" rows="3" required></textarea>
+                    {{-- TinyMCE enabled textarea for rich text input --}}
+                    <textarea name="questions[{{ $idx }}][text]" class="form-control tinymce" rows="4" required>{{ old("questions.$idx.text") }}</textarea>
                   </div>
                 </div>
 
@@ -78,3 +79,13 @@
     </div>
   </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.initTiny) {
+    window.initTiny('{{ route("teacher.editor.upload") }}');
+  }
+});
+</script>
+@endpush
