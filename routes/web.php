@@ -104,7 +104,11 @@ Route::delete('tests/{test}/questions/bulk', [QuestionBulkController::class, 'de
 
             Route::get('tests/{test}/questions/{question}/edit',  [TeacherQuestionController::class,'edit'])->name('questions.edit');
     Route::put('tests/{test}/questions/{question}',       [TeacherQuestionController::class,'update'])->name('questions.update');
+    // Route::resource('tests', TeacherTestController::class)->names('tests');
+
   });
+
+
 
  
 
