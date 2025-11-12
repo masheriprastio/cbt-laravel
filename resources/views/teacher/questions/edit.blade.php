@@ -50,13 +50,14 @@
           {{-- Bagian MCQ --}}
           <div id="mcqBox" class="mt-4">
             <label class="form-label d-block">Pilihan (A–E)</label>
-            @foreach ($letters as $i => $L)
+            @for ($i = 0; $i < 5; $i++)
+              @php $L = chr(65 + $i); @endphp
               <div class="input-group mb-2">
                 <span class="input-group-text">{{ $L }}</span>
                 <input type="text" name="choices[{{ $i }}]" class="form-control"
                        value="{{ old('choices.'.$i, $choices[$i] ?? '') }}">
               </div>
-            @endforeach
+            @endfor
 
             <div class="mt-2">
               <label class="form-label">Kunci Jawaban</label>

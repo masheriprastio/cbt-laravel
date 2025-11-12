@@ -14,13 +14,9 @@
 
     @stack('head')
     {{-- ... --}}
-  @vite(['resources/js/tinymce-init.js'])
   @stack('styles')
   </head>
   <body class="bg-body-tertiary">
-
-  {{-- ... --}}
-  @stack('scripts')
 
     <div class="d-flex">
       {{-- Sidebar kiri --}}
@@ -65,6 +61,7 @@
     <script src="{{ asset('vendor/flexy/assets/js/app.min.js') }}"></script>
     {{-- <script src="{{ asset('vendor/flexy/assets/js/dashboard.js') }}"></script> --}}
 
+    @vite(['resources/js/tinymce-init.js'])
     @stack('scripts')
   </body>
 </html>
