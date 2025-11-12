@@ -13,6 +13,7 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/8/tinymce.min.js" referrerpolicy="origin"></script>
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100">
@@ -32,5 +33,12 @@
                 {{ $slot }}
             </main>
         </div>
+        <script>
+            tinymce.init({
+                selector: 'textarea.tinymce-editor',
+                plugins: 'code table lists',
+                toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | indent outdent | bullist numlist | code | table'
+            });
+        </script>
     </body>
 </html>

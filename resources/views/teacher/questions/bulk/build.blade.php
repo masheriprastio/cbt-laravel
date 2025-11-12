@@ -39,7 +39,7 @@
                 <div class="row mt-3">
                   <div class="col-12">
                     <label class="form-label">Isi Soal</label>
-                    <textarea name="questions[{{ $idx }}][text]" class="form-control" rows="3" required></textarea>
+                    <textarea name="questions[{{ $idx }}][text]" class="form-control tinymce-editor" rows="3" required></textarea>
                   </div>
                 </div>
 

@@ -13,6 +13,7 @@
     {{-- <link rel="stylesheet" href="{{ asset('vendor/flexy/assets/css/icons/tabler-icons.min.css') }}"> --}}
 
     @stack('head')
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/8/tinymce.min.js" referrerpolicy="origin"></script>
   </head>
   <body class="bg-body-tertiary">
 
@@ -60,5 +61,12 @@
     {{-- <script src="{{ asset('vendor/flexy/assets/js/dashboard.js') }}"></script> --}}
 
     @stack('scripts')
+    <script>
+        tinymce.init({
+            selector: 'textarea.tinymce-editor',
+            plugins: 'code table lists',
+            toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | indent outdent | bullist numlist | code | table'
+        });
+    </script>
   </body>
 </html>

@@ -31,7 +31,7 @@
 
           <div class="mb-3">
             <label class="form-label">Teks Soal</label>
-            <textarea name="text" rows="4" class="form-control" required>{{ old('text',$question->text) }}</textarea>
+            <textarea name="text" rows="4" class="form-control tinymce-editor" required>{{ old('text',$question->text) }}</textarea>
           </div>
 
           <div class="row g-3">
