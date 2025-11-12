@@ -13,8 +13,14 @@
     {{-- <link rel="stylesheet" href="{{ asset('vendor/flexy/assets/css/icons/tabler-icons.min.css') }}"> --}}
 
     @stack('head')
+    {{-- ... --}}
+  @vite(['resources/js/tinymce-init.js'])
+  @stack('styles')
   </head>
   <body class="bg-body-tertiary">
+
+  {{-- ... --}}
+  @stack('scripts')
 
     <div class="d-flex">
       {{-- Sidebar kiri --}}

@@ -99,6 +99,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const mcq  = document.getElementById('mcqBox');
   const sync = () => { mcq.style.display = (type.value === 'mcq') ? '' : 'none'; }
   type.addEventListener('change', sync); sync();
+  if (window.initTiny) {
+    window.initTiny('{{ route("teacher.editor.upload") }}'); // atau null kalau belum buat upload
+  }
 });
 </script>
 @endpush
