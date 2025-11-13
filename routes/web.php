@@ -130,6 +130,10 @@ Route::delete('tests/{test}/questions/bulk', [QuestionBulkController::class, 'de
             Route::get('tests/{test}/questions/{question}/edit',  [TeacherQuestionController::class,'edit'])->name('questions.edit');
     Route::put('tests/{test}/questions/{question}',       [TeacherQuestionController::class,'update'])->name('questions.update');
     Route::post('editor/upload', [EditorController::class, 'upload'])->name('editor.upload');
+    // routes/web.php (di dalam group teacher)
+Route::post('editor/upload', [\App\Http\Controllers\Teacher\EditorController::class, 'upload'])
+     ->name('teacher.editor.upload');
+
   });
 
  
