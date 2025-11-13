@@ -7,7 +7,7 @@
 @section('content')
   {{-- ... kode form kamu ... --}}
 
-  @foreach ($indexes as $i)
+  @foreach ($items as $i => $row)
     <div class="card mb-3">
       <div class="card-body">
         <div class="mb-2">
