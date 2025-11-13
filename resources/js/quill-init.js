@@ -9,17 +9,28 @@ window.initQuill = (uploadUrl = null) => {
     // Avoid double-initializing
     if (textarea.dataset.quillInitialized) return;
 
-  // Create container for Quill and place it where the textarea was so
-  // following siblings (like the choices block) remain outside the editor.
-  const editorContainer = document.createElement('div');
-  editorContainer.className = 'quill-container mb-2';
-  // Replace the textarea in the DOM with the editor container, then
-  // re-insert the textarea (hidden) after the editor so form submission
-  // still includes the value.
-  const parent = textarea.parentNode;
-  textarea.style.display = 'none';
-  parent.replaceChild(editorContainer, textarea);
-  parent.insertBefore(textarea, editorContainer.nextSibling);
+    // Create container for Quill
+    const editorContainer = document.createElement('div');
+    editorContainer.className = 'quill-container mb-2';
+
+    // Prefer inserting the editor inside an explicit .editor-wrapper if present.
+    // This ensures choices and other following elements remain outside the editor.
+    const wrapper = textarea.closest('.editor-wrapper');
+    const parent = wrapper || textarea.parentNode;
+
+    // Hide the original textarea (we'll keep it in DOM for form submit)
+    textarea.style.display = 'none';
+
+    if (wrapper) {
+      // Insert editorContainer as the first element inside the wrapper before the textarea
+      wrapper.insertBefore(editorContainer, textarea);
+      // Move textarea to be immediately after the editor container inside wrapper
+      wrapper.insertBefore(textarea, editorContainer.nextSibling);
+    } else {
+      // Legacy behaviour: replace textarea with editor then reinsert textarea after
+      parent.replaceChild(editorContainer, textarea);
+      parent.insertBefore(textarea, editorContainer.nextSibling);
+    }
 
     // Set initial contents from textarea
     const initialHtml = textarea.value || '';

@@ -25,18 +25,21 @@
                 </div>
 
                 {{-- Baris Isi Soal --}}
-                <div class="row mt-3">
-                  <div class="col-12">
-                    <label class="form-label">Isi Soal</label>
-                    {{-- Rich editor (Quill) enabled textarea for rich text input --}}
-                    <textarea name="questions[{{ $idx }}][text]" class="form-control quill-editor" rows="4" required>{{ old("questions.$idx.text") }}</textarea>
+                {{-- Wrap editor + choices in an explicit wrapper to guarantee DOM flow and separation --}}
+                <div class="editor-wrapper">
+                  <div class="row mt-3">
+                    <div class="col-12">
+                      <label class="form-label">Isi Soal</label>
+                      {{-- Rich editor (CKEditor) enabled textarea for rich text input --}}
+                      <textarea name="questions[{{ $idx }}][text]" class="form-control ck-editor" rows="4" required>{{ old("questions.$idx.text") }}</textarea>
+                    </div>
                   </div>
-                </div>
 
-                @if ($type === 'mcq')
+                  @if ($type === 'mcq')
                   {{-- Pilihan Ganda (vertikal): tampilkan A..E tiap baris --}}
                   @php $letters = ['A','B','C','D','E']; @endphp
-                  <div class="mt-3">
+                  {{-- Wrap choices in a dedicated block so it always sits outside the editor area --}}
+                  <div class="mt-3 choices-block">
                     <label class="form-label d-block mb-2">Pilihan</label>
                     @foreach($letters as $i => $letter)
                       <div class="mb-3">
@@ -55,6 +58,7 @@
                     </div>
                   </div>
                 @endif
+                </div>
 
                 {{-- Pengaturan tambahan (Urutan & Skor) ditampilkan vertikal di bawah isi soal dan pilihan --}}
                 <div class="mt-3">
@@ -88,12 +92,37 @@
 @endsection
 
 @push('scripts')
+<!-- Load CKEditor 5 Classic build from CDN -->
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  // Initialize the appropriate rich editor. This view uses Quill by default.
-  if (window.initQuill) {
-    window.initQuill('{{ route("teacher.editor.upload") }}');
-  }
+  // Initialize CKEditor instances for each textarea with class .ck-editor
+  document.querySelectorAll('textarea.ck-editor').forEach((textarea) => {
+    // create a container for the editor and hide the original textarea
+    const container = document.createElement('div');
+    container.className = 'ck-editor-container mb-2';
+    textarea.style.display = 'none';
+    textarea.parentNode.insertBefore(container, textarea);
+
+    ClassicEditor.create(container).then((editor) => {
+      // load initial data
+      editor.setData(textarea.value || '');
+      // store reference so we can copy data back on submit
+      textarea._ckEditor = editor;
+    }).catch((err) => {
+      console.error('CKEditor init failed', err);
+    });
+
+    // ensure on form submit we copy editor data back into textarea
+    const form = textarea.closest('form');
+    if (form) {
+      form.addEventListener('submit', () => {
+        if (textarea._ckEditor) {
+          textarea.value = textarea._ckEditor.getData();
+        }
+      });
+    }
+  });
 });
 </script>
 @endpush
@@ -114,5 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
   .quill-container .ql-container { border-radius: 0 0 6px 6px; min-height: 160px; }
   /* Ensure the hidden textarea doesn't take up layout space */
   textarea.quill-editor { display: none !important; }
+  /* Ensure the choices block sits clearly below the editor */
+  .choices-block { clear: both; margin-top: 1rem !important; padding: 0.75rem; background: #ffffff; border: 1px solid #e9ecef; border-radius: 6px; }
 </style>
 @endpush
