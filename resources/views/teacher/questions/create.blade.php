@@ -16,7 +16,7 @@
 
       <div>
         <label class="block text-sm font-medium">Teks Soal</label>
-        <textarea name="text" class="w-full border rounded-lg p-2 tinymce-editor" required></textarea>
+  <textarea name="text" class="w-full border rounded-lg p-2 quill-editor" required></textarea>
       </div>
 
       <div class="grid grid-cols-2 gap-4">
@@ -66,10 +66,18 @@
   @push('scripts')
   <script>
   document.addEventListener('DOMContentLoaded', () => {
-    if (window.initTiny) {
-      window.initTiny('{{ route("teacher.editor.upload") }}');
+    if (window.initQuill) {
+      window.initQuill('{{ route("teacher.editor.upload") }}');
     }
   });
   </script>
+  @endpush
+
+  @push('styles')
+  <style>
+    .quill-container { margin-bottom: 1rem; }
+    .quill-container .ql-container { min-height: 160px; }
+    textarea.quill-editor { display: none !important; }
+  </style>
   @endpush
 </x-app-layout>

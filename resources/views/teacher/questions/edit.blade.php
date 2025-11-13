@@ -31,7 +31,7 @@
 
           <div class="mb-3">
             <label class="form-label">Teks Soal</label>
-            <textarea name="text" rows="4" class="form-control tinymce-editor" required>{{ old('text',$question->text) }}</textarea>
+            <textarea name="text" rows="4" class="form-control quill-editor" required>{{ old('text',$question->text) }}</textarea>
           </div>
 
           <div class="row g-3">
@@ -99,9 +99,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const mcq  = document.getElementById('mcqBox');
   const sync = () => { mcq.style.display = (type.value === 'mcq') ? '' : 'none'; }
   type.addEventListener('change', sync); sync();
-  if (window.initTiny) {
-    window.initTiny('{{ route("teacher.editor.upload") }}'); // atau null kalau belum buat upload
+  if (window.initQuill) {
+    window.initQuill('{{ route("teacher.editor.upload") }}'); // initialize Quill with upload URL
   }
 });
 </script>
+@endpush
+
+@push('styles')
+<style>
+  .quill-container { margin-bottom: 1rem; }
+  .quill-container .ql-container { min-height: 160px; }
+  textarea.quill-editor { display: none !important; }
+</style>
 @endpush

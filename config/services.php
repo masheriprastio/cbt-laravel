@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    // TinyMCE configuration: license key and base URL for static assets.
+    // Set via environment variables TINYMCE_LICENSE and TINYMCE_BASE_URL.
+    'tinymce' => [
+        'license' => env('TINYMCE_LICENSE', ''),
+        'base_url' => env('TINYMCE_BASE_URL', '/vendor/tinymce'),
+    ],
+
 ];

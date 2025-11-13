@@ -16,6 +16,9 @@ class EditorController extends Controller
 
         $path = $request->file('file')->store('public/uploads');
 
-        return response()->json(['location' => Storage::url($path)]);
+        $url = Storage::url($path);
+
+        // Return both 'location' (TinyMCE style) and 'url' (Quill style) for compatibility
+        return response()->json(['location' => $url, 'url' => $url]);
     }
 }

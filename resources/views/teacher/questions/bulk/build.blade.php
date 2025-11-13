@@ -9,6 +9,7 @@
 @section('content')
   <div class="card shadow-sm">
     <div class="card-body">
+      <div class="bulk-questions">
       <form method="POST" action="{{ route('teacher.questions.bulk.store', $test) }}" class="row g-3" novalidate>
         @csrf
         <input type="hidden" name="type" value="{{ $type }}">
@@ -19,26 +20,16 @@
             <div class="card shadow-sm">
               <div class="card-body">
                 {{-- Header dengan nomor jelas di kiri --}}
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="mb-3">
                   <h5 class="card-title mb-0"><span class="badge bg-primary me-2">{{ $num }}</span>Soal Nomor {{ $num }}</h5>
-                  <div class="d-flex gap-2">
-                    <div>
-                      <div class="small text-muted">Urutan</div>
-                      <input type="number" name="questions[{{ $idx }}][sort]" class="form-control form-control-sm text-end" style="width:100px;" value="{{ $num }}">
-                    </div>
-                    <div>
-                      <div class="small text-muted">Skor</div>
-                      <input type="number" name="questions[{{ $idx }}][score]" class="form-control form-control-sm text-end" style="width:100px;" value="{{ $score }}" required>
-                    </div>
-                  </div>
                 </div>
 
                 {{-- Baris Isi Soal --}}
                 <div class="row mt-3">
                   <div class="col-12">
                     <label class="form-label">Isi Soal</label>
-                    {{-- TinyMCE enabled textarea for rich text input --}}
-                    <textarea name="questions[{{ $idx }}][text]" class="form-control tinymce" rows="4" required>{{ old("questions.$idx.text") }}</textarea>
+                    {{-- Rich editor (Quill) enabled textarea for rich text input --}}
+                    <textarea name="questions[{{ $idx }}][text]" class="form-control quill-editor" rows="4" required>{{ old("questions.$idx.text") }}</textarea>
                   </div>
                 </div>
 
@@ -64,6 +55,21 @@
                     </div>
                   </div>
                 @endif
+
+                {{-- Pengaturan tambahan (Urutan & Skor) ditampilkan vertikal di bawah isi soal dan pilihan --}}
+                <div class="mt-3">
+                  <div class="row">
+                    <div class="col-12 col-md-6 mb-3">
+                      <label class="form-label">Urutan</label>
+                      <input type="number" name="questions[{{ $idx }}][sort]" class="form-control form-control-sm" value="{{ $num }}">
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                      <label class="form-label">Skor</label>
+                      <input type="number" name="questions[{{ $idx }}][score]" class="form-control form-control-sm" value="{{ $score }}" required>
+                    </div>
+                  </div>
+                </div>
+
                 </div>
               </div>
             </div>
@@ -76,6 +82,7 @@
           <button class="btn btn-primary">Simpan Soal</button>
         </div>
       </form>
+      </div>
     </div>
   </div>
 @endsection
@@ -83,9 +90,29 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  if (window.initTiny) {
-    window.initTiny('{{ route("teacher.editor.upload") }}');
+  // Initialize the appropriate rich editor. This view uses Quill by default.
+  if (window.initQuill) {
+    window.initQuill('{{ route("teacher.editor.upload") }}');
   }
 });
 </script>
+@endpush
+
+@push('styles')
+<style>
+  /* Force each bulk question card to occupy full width and stack vertically */
+  .bulk-questions .row > .col-12 {
+    -webkit-box-flex: 0 !important;
+    -ms-flex: 0 0 100% !important;
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+  .bulk-questions .card { width: 100%; }
+  /* Quill appearance tweaks to keep spacing tidy between editor and choices */
+  .quill-container { margin-bottom: 1rem; }
+  .quill-container .ql-toolbar { border-radius: 6px 6px 0 0; }
+  .quill-container .ql-container { border-radius: 0 0 6px 6px; min-height: 160px; }
+  /* Ensure the hidden textarea doesn't take up layout space */
+  textarea.quill-editor { display: none !important; }
+</style>
 @endpush

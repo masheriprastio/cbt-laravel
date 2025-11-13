@@ -4,6 +4,7 @@
   $isSiswa = $role === 'siswa';
 @endphp
 
+
 <nav class="sidebar bg-white border-end" id="sidebar">
   <div class="px-3 py-3 border-bottom d-flex align-items-center gap-2">
     <a href="{{ route('dashboard') }}" class="d-flex align-items-center text-decoration-none">

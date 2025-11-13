@@ -22,7 +22,7 @@ window.initTiny = (uploadUrl = null) => {
   // Default to the public vendor path where we copy TinyMCE assets.
   tinymce.baseURL = window.tinymceBaseUrl || '/vendor/tinymce';
 
-  tinymce.init({
+  const cfg = {
     selector: 'textarea.tinymce',
     menubar: false,
     height: 260,
@@ -33,15 +33,24 @@ window.initTiny = (uploadUrl = null) => {
     convert_urls: false,
     images_upload_url: uploadUrl || undefined,
     images_upload_credentials: true,
-    // Ensure the editor won't be disabled by a missing license manager
-    // during development. If you have a valid TinyMCE license, set it
-    // here (or via window.tinymceLicenseKey) instead of leaving it
-    // blank.
-    license_key: window.tinymceLicenseKey || '',
     // We import the skin/content CSS via the bundler, so prevent TinyMCE
     // from trying to load the files at runtime (avoids page-relative
     // requests for /plugins/... and /skins/...).
     skin: false,
     content_css: false,
-  });
+  };
+
+  // Only add license_key to the configuration if a key is provided. Leaving
+  // an empty string here can cause TinyMCE to display the "disabled" message
+  // in some builds. If you have a TinyMCE license, set `window.tinymceLicenseKey`
+  // (e.g. from server-side env) before calling initTiny.
+  try {
+    if (window.tinymceLicenseKey && String(window.tinymceLicenseKey).trim().length > 0) {
+      cfg.license_key = window.tinymceLicenseKey;
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  tinymce.init(cfg);
 };

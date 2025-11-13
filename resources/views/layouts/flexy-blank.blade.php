@@ -14,10 +14,7 @@
 
     <main class="min-vh-100 d-flex align-items-center">
       <div class="container">
-        @yield('content')
-
-        {{-- Development diagnostics: show bootstrap / tinymce status when APP_DEBUG=true --}}
-        @includeIf('partials.flexy.diagnostics')
+  @yield('content')
       </div>
     </main>
 

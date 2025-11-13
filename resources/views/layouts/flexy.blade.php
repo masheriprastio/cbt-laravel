@@ -9,6 +9,16 @@
   <link rel="stylesheet" href="{{ asset('vendor/flexy/assets/libs/bootstrap/dist/css/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ asset('vendor/flexy/assets/css/style.min.css') }}">
 
+  {{-- TinyMCE config (optional). Configure via config/services.php using the
+       TINYMCE_LICENSE and TINYMCE_BASE_URL environment variables. --}}
+  @php $tm = config('services.tinymce', ['license'=>'','base_url'=>'/vendor/tinymce']); @endphp
+  @if(!empty($tm['license']))
+    <script>window.tinymceLicenseKey = "{{ $tm['license'] }}";</script>
+  @endif
+  @if(!empty($tm['base_url']))
+    <script>window.tinymceBaseUrl = "{{ $tm['base_url'] }}";</script>
+  @endif
+
   @vite(['resources/js/app.js']) {{-- Vite umum proyekmu --}}
   @stack('styles')
 </head>
@@ -27,10 +37,11 @@
         </div>
 
   @includeWhen(session('success'),'partials.flexy.alert-success', ['msg'=>session('success')])
-  @includeWhen($errors->any(),'partials.flexy.alert-errors')
-
-  {{-- Development diagnostics: shows Bootstrap / TinyMCE asset presence when APP_DEBUG=true --}}
-  @includeIf('partials.flexy.diagnostics')
+  {{-- Do not show validation errors on the public dashboard route; skip for 'dashboard' name to avoid stale messages --}}
+  @php $currentRoute = \Request::route() ? \Request::route()->getName() : null; @endphp
+  @if($currentRoute !== 'dashboard')
+    @includeWhen($errors->any(),'partials.flexy.alert-errors')
+  @endif
 
         @yield('content')
       </div>

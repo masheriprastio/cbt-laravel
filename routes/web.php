@@ -12,6 +12,9 @@ use App\Http\Controllers\Student\ExamController as StudentExamController;
 
 use App\Http\Controllers\Teacher\QuestionBulkController;
 use App\Http\Controllers\Teacher\EditorController;
+use App\Http\Controllers\TemporaryExamController;
+use App\Models\Test;
+use Illuminate\Support\Facades\Auth;
 
 
 
@@ -30,7 +33,16 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    $user = Auth::user();
+    $stats = ['tests' => 0];
+    $latestTests = [];
+    if ($user) {
+        // count tests created by this user (guru)
+        $stats['tests'] = Test::where('created_by', $user->id)->count();
+        $latestTests = Test::where('created_by', $user->id)->orderBy('created_at','desc')->limit(5)->get();
+    }
+
+    return view('dashboard', compact('stats','latestTests'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -63,12 +75,24 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 
+// Temporary demo exam (no auth) for quick student-mode testing
+Route::get('/exam/demo', [TemporaryExamController::class, 'demo'])->name('exam.demo');
+Route::post('/exam/demo/submit', [TemporaryExamController::class, 'submit'])->name('exam.demo.submit');
+// helper: create a small sample test (for demo) and redirect to demo view
+Route::get('/exam/demo/create-sample', [TemporaryExamController::class, 'createSample'])->name('exam.demo.sample');
+
+// Exam session endpoints (demo uses these to report start/violations)
+Route::post('/exam/session/start', [App\Http\Controllers\ExamSessionController::class, 'start'])->name('exam.session.start');
+Route::post('/exam/session/{session}/violation', [App\Http\Controllers\ExamSessionController::class, 'violation'])->name('exam.session.violation');
+
 Route::middleware(['auth','role:guru'])
   ->prefix('teacher')
   ->as('teacher.')
   ->group(function () {
       Route::get('/dashboard', [TeacherTestController::class, 'dashboard'])->name('dashboard');
       Route::resource('tests', TeacherTestController::class)->names('tests');
+    // Monitor exam sessions (guru)
+    Route::get('/monitor', [App\Http\Controllers\ExamSessionController::class, 'index'])->name('monitor.index');
       Route::get('/questions/select', [TeacherQuestionController::class, 'select'])
             ->name('questions.select');
 
