@@ -93,6 +93,16 @@ document.addEventListener('DOMContentLoaded', function () {
   // Initialize the appropriate rich editor. This view uses Quill by default.
   if (window.initQuill) {
     window.initQuill('{{ route("teacher.editor.upload") }}');
+
+    // Defensively clear any pre-filled content like "Pilihan Pilihan A"
+    // that might be caused by browser autofill or other scripts.
+    document.querySelectorAll('textarea.quill-editor').forEach(textarea => {
+      if (textarea._quillEditor) {
+        // Use `setContents` with an empty Delta to clear the editor
+        // without affecting the undo/redo stack history.
+        textarea._quillEditor.setContents([]);
+      }
+    });
   }
 });
 </script>
