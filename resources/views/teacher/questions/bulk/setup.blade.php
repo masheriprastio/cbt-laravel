@@ -28,6 +28,7 @@
         <select name="type" class="form-select" required>
           <option value="mcq"  {{ old('type')==='mcq'  ? 'selected':'' }}>Pilihan Ganda (MCQ)</option>
           <option value="essay"{{ old('type')==='essay'? 'selected':'' }}>Esai</option>
+          <option value="tf"{{ old('type')==='tf'? 'selected':'' }}>Benar / Salah (True/False)</option>
         </select>
       </div>
 

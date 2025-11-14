@@ -27,12 +27,14 @@
         <form method="POST" action="{{ route('teacher.tests.store') }}" id="createTestForm" novalidate>
           @csrf
 
-          <div class="mb-3">
-            <label for="title" class="form-label">Judul Ujian <span class="text-danger">*</span></label>
-            <input type="text" id="title" name="title"
-                   class="form-control @error('title') is-invalid @enderror"
-                   value="{{ old('title') }}" maxlength="200" required>
-            @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
+          <div class="row g-3 mb-3">
+            <div class="col-12">
+                <label for="subject" class="form-label">Mata Pelajaran <span class="text-danger">*</span></label>
+                <input type="text" id="subject" name="subject"
+                       class="form-control @error('subject') is-invalid @enderror"
+                       value="{{ old('subject') }}" maxlength="100" required>
+                @error('subject') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
           </div>
 
           <div class="mb-3">
@@ -47,8 +49,8 @@
             <div class="col-12 col-sm-6">
               <label for="duration_minutes" class="form-label">Durasi (menit) <span class="text-danger">*</span></label>
               <input type="number" min="5" max="300" step="5" id="duration_minutes" name="duration_minutes"
-                     class="form-control @error('duration_minutes') is-invalid @enderror"
-                     value="{{ old('duration_minutes', 60) }}" required>
+                class="form-control @error('duration_minutes') is-invalid @enderror"
+                value="{{ old('duration_minutes') }}" required>
               @error('duration_minutes') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
 
@@ -67,19 +69,19 @@
 
           <div class="row g-3">
             <div class="col-12 col-md-6">
-              <label for="starts_at" class="form-label">Mulai (opsional)</label>
+              <label for="starts_at" class="form-label">Mulai <span class="text-danger">*</span></label>
               <input type="datetime-local" id="starts_at" name="starts_at"
                      class="form-control @error('starts_at') is-invalid @enderror"
-                     value="{{ old('starts_at') }}">
+                     value="{{ old('starts_at') }}" required>
               @error('starts_at') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="col-12 col-md-6">
-              <label for="ends_at" class="form-label">Selesai (opsional)</label>
+              <label for="ends_at" class="form-label">Selesai <span class="text-danger">*</span></label>
               <input type="datetime-local" id="ends_at" name="ends_at"
                      class="form-control @error('ends_at') is-invalid @enderror"
-                     value="{{ old('ends_at') }}">
+                     value="{{ old('ends_at') }}" required>
               @error('ends_at') <div class="invalid-feedback">{{ $message }}</div> @enderror
-              <div class="form-text">Jika diisi, waktu selesai harus setelah waktu mulai.</div>
+              <div class="form-text">Waktu selesai harus setelah waktu mulai.</div>
             </div>
           </div>
 
@@ -104,7 +106,7 @@
 
           <div class="d-flex gap-2 mt-4">
             <a href="{{ route('teacher.tests.index') }}" class="btn btn-outline-secondary">Batal</a>
-            <button type="submit" name="action" value="save_and_add" class="btn btn-primary">Simpan & Lanjut Tambah Soal</button>
+            <button type="submit" class="btn btn-primary">Simpan & Lanjut</button>
           </div>
         </form>
       </div>

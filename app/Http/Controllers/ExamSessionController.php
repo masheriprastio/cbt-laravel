@@ -48,4 +48,22 @@ class ExamSessionController extends Controller
         $sessions = ExamSession::with(['test','user'])->orderBy('started_at','desc')->get();
         return view('teacher.monitor.index', compact('sessions'));
     }
+
+    // Teacher: resume a running session (e.g. after violation)
+    public function resume(ExamSession $session)
+    {
+        $session->violations = 0;
+        $session->status = 'running';
+        $session->save();
+
+        return back()->with('success', 'Sesi ujian dilanjutkan.');
+    }
+
+    // Teacher: delete a session
+    public function destroy(ExamSession $session)
+    {
+        $session->delete();
+
+        return back()->with('success', 'Sesi ujian dihapus.');
+    }
 }

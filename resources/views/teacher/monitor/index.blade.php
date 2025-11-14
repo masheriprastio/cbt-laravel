@@ -17,6 +17,7 @@
           <th>Selesai</th>
           <th>Pelanggaran</th>
           <th>Status</th>
+          <th>Aksi</th>
         </tr>
       </thead>
       <tbody>
@@ -29,6 +30,19 @@
             <td>{{ $s->finished_at ? \Illuminate\Support\Carbon::parse($s->finished_at)->format('Y-m-d H:i:s') : '—' }}</td>
             <td>{{ $s->violations }}</td>
             <td>{{ $s->status }}</td>
+            <td>
+                <div class="d-flex gap-2">
+                    <form method="POST" action="{{ route('teacher.monitor.resume', $s) }}" onsubmit="return confirm('Lanjutkan sesi untuk peserta ini?')">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Lanjutkan Ujian">Resume</button>
+                    </form>
+                    <form method="POST" action="{{ route('teacher.monitor.destroy', $s) }}" onsubmit="return confirm('Hapus permanen sesi untuk peserta ini?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus Sesi">Hapus</button>
+                    </form>
+                </div>
+            </td>
           </tr>
         @endforeach
       </tbody>

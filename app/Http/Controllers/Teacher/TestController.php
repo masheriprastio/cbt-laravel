@@ -36,11 +36,11 @@ class TestController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title'             => 'required|string|max:200',
+            'subject'           => 'required|string|max:100',
             'description'       => 'nullable|string',
             'duration_minutes'  => 'required|integer|min:5|max:300',
-            'starts_at'         => 'nullable|date',
-            'ends_at'           => 'nullable|date|after:starts_at',
+            'starts_at'         => 'required|date',
+            'ends_at'           => 'required|date|after:starts_at',
             'mcq_count'         => 'required|integer|min:0|max:500',
             'essay_count'       => 'required|integer|min:0|max:500',
             'shuffle_questions' => 'nullable|boolean',
@@ -49,29 +49,33 @@ class TestController extends Controller
         $data['created_by'] = auth()->id();
         $data['shuffle_questions'] = (bool)($data['shuffle_questions'] ?? false);
 
-        $test = Test::create($data);
-
-        // Jika tombol "Simpan & Lanjut Tambah Soal" ditekan, arahkan ke bulk build
-        if ($request->input('action') === 'save_and_add') {
-            // Prioritaskan MCQ jika ada jumlah > 0
-            $mcq = (int)($data['mcq_count'] ?? 0);
-            $essay = (int)($data['essay_count'] ?? 0);
-
-            if ($mcq > 0) {
-                return redirect()->to(route('teacher.questions.bulk.build', $test) . '?type=mcq&count=' . $mcq);
-            }
-            if ($essay > 0) {
-                return redirect()->to(route('teacher.questions.bulk.build', $test) . '?type=essay&count=' . $essay);
-            }
-            // Jika kedua jumlah 0, tetap kembali ke show dengan pesan
-            return redirect()
-                ->route('teacher.tests.show', $test)
-                ->with('success', 'Ujian dibuat. Tidak ada soal untuk ditambahkan.');
+        // Generate a title automatically based on subject (since title field removed from form)
+        if (empty($data['title'])) {
+            $data['title'] = trim($data['subject']) ?: ('Ujian ' . now()->format('Y-m-d H:i'));
         }
 
+        $test = Test::create($data);
+
+        // Jika guru memasukkan jumlah soal (MCQ/Essay) > 0, lanjutkan ke bulk build form
+        $totalQuestions = intval($data['mcq_count'] ?? 0) + intval($data['essay_count'] ?? 0);
+        if ($totalQuestions > 0) {
+            // Prefer memulai dengan MCQ jika ada, else essay. Kirimkan parameter via query string.
+            $mcq = intval($data['mcq_count'] ?? 0);
+            $essay = intval($data['essay_count'] ?? 0);
+            if ($mcq > 0) {
+                return redirect()
+                    ->route('teacher.questions.bulk.build', ['test' => $test->id, 'type' => 'mcq', 'count' => $mcq])
+                    ->with('success', 'Ujian dibuat. Lanjutkan input massal soal MCQ.');
+            }
+            return redirect()
+                ->route('teacher.questions.bulk.build', ['test' => $test->id, 'type' => 'essay', 'count' => $essay])
+                ->with('success', 'Ujian dibuat. Lanjutkan input massal soal Esai.');
+        }
+
+        // default: tunjukkan halaman ujian
         return redirect()
             ->route('teacher.tests.show', $test)
-            ->with('success', 'Ujian dibuat. Silakan tambahkan soal.');
+            ->with('success', 'Ujian dibuat. Anda dapat menambahkan soal nanti.');
     }
 
     /** Detail ujian + daftar soal */
@@ -107,17 +111,21 @@ public function show(Test $test)
         $this->authorizeOwner($test);
 
         $data = $request->validate([
-            'title'             => 'required|string|max:200',
+            'subject'           => 'required|string|max:100',
             'description'       => 'nullable|string',
             'duration_minutes'  => 'required|integer|min:5|max:300',
-            'starts_at'         => 'nullable|date',
-            'ends_at'           => 'nullable|date|after:starts_at',
+            'starts_at'         => 'required|date',
+            'ends_at'           => 'required|date|after:starts_at',
             'mcq_count'         => 'required|integer|min:0|max:500',
             'essay_count'       => 'required|integer|min:0|max:500',
             'shuffle_questions' => 'nullable|boolean',
         ]);
 
         $data['shuffle_questions'] = (bool)($data['shuffle_questions'] ?? false);
+        // ensure title remains valid (keep it in sync with subject if not present)
+        if (empty($data['title'])) {
+            $data['title'] = trim($data['subject']) ?: $test->title;
+        }
 
         $test->update($data);
 

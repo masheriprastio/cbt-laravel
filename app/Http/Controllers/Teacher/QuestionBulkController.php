@@ -22,7 +22,7 @@ class QuestionBulkController extends Controller
    public function build(Request $request, Test $test)
 {
     $data = $request->validate([
-        'type'          => ['required','in:mcq,essay'],
+        'type'          => ['required','in:mcq,essay,tf'],
         'count'         => ['required','integer','min:1','max:100'],
         'start_number'  => ['nullable','integer','min:1','max:10000'],
         'default_score' => ['nullable','integer','min:1','max:1000'],
@@ -40,67 +40,88 @@ class QuestionBulkController extends Controller
     // Simpan massal
     public function store(Request $request, Test $test)
     {
-        // Validasi array pertanyaan
+        // Validasi array pertanyaan (per-question types supported)
         $rules = [
-            'type'               => ['required', Rule::in(['mcq','essay'])],
+            'type'               => ['nullable', Rule::in(['mcq','essay','tf'])],
             'questions'          => ['required','array','min:1'],
+            'questions.*.type'   => ['nullable', Rule::in(['mcq','essay','tf'])],
             'questions.*.text'   => ['required','string'],
             'questions.*.score'  => ['required','integer','min:1'],
             'questions.*.sort'   => ['nullable','integer','min:1'],
         ];
 
-        // MCQ extra rules
-        if ($request->input('type') === 'mcq') {
-            $rules = array_merge($rules, [
-                'questions.*.choices'    => ['required','array','size:5'],
-                'questions.*.choices.*'  => ['required','string'],
-                'questions.*.answer_key' => ['required', Rule::in(['A','B','C','D','E'])],
-            ]);
-        }
-
         $validated = $request->validate($rules);
 
-        DB::transaction(function () use ($validated, $test) {
-            // foreach ($validated['questions'] as $q) {
-            //     $payload = [
-            //         'test_id'    => $test->id,
-            //         'type'       => $validated['type'],
-            //         'text'       => $q['text'],
-            //         'score'      => $q['score'],
-            //         'sort_order' => $q['sort'] ?? null,
-            //         'created_by' => auth()->id(),
-            //     ];
-            //     if ($validated['type'] === 'mcq') {
-            //         $payload['choices']    = array_values($q['choices']);
-            //         $payload['answer_key'] = $q['answer_key'];
-            //     }
-            //     Question::create($payload);
-            foreach ($validated['questions'] as $q) {
-    $payload = [
-        'test_id'    => $test->id,
-        'type'       => $validated['type'],
-        'text'       => $q['text'],
-        'score'      => $q['score'],
-        'sort_order' => $q['sort'] ?? null,
-        'created_by' => auth()->id(),
-    ];
-    if ($validated['type']==='mcq') {
-        $payload['choices']    = array_values($q['choices']);
-        $payload['answer_key'] = $q['answer_key'];
-    }
-    \App\Models\Question::create($payload);
-}
-            // opsional: update counter ringkas di tabel tests
-            if ($validated['type'] === 'mcq') {
-                $test->increment('mcq_count', count($validated['questions']));
-            } else {
-                $test->increment('essay_count', count($validated['questions']));
+        // If a root 'type' is provided and per-question type is missing, apply root type
+        if ($request->filled('type')) {
+            foreach ($request->input('questions', []) as $k => $q) {
+                if (empty($q['type'])) {
+                    $request->merge(["questions.$k.type" => $request->input('type')]);
+                }
             }
+        }
+
+        // Re-fetch validated data now that we may have injected per-question types
+        $validated = $request->validate($rules);
+
+        // capture intended totals before we sync counts (so we can decide redirect)
+        $intendedMcqTotal = intval($test->mcq_count ?? 0);
+        $intendedEssayTotal = intval($test->essay_count ?? 0);
+
+        DB::transaction(function () use ($validated, $test) {
+            foreach ($validated['questions'] as $q) {
+                $qtype = $q['type'] ?? $validated['type'] ?? 'essay';
+                $payload = [
+                    'test_id'    => $test->id,
+                    'type'       => $qtype,
+                    'text'       => $q['text'],
+                    'score'      => $q['score'],
+                    'sort_order' => $q['sort'] ?? null,
+                    'created_by' => auth()->id(),
+                ];
+
+                if ($qtype === 'mcq') {
+                    $payload['choices']    = array_values($q['choices'] ?? []);
+                    $payload['answer_key'] = $q['answer_key'] ?? null;
+                } elseif ($qtype === 'tf') {
+                    $payload['answer_key'] = $q['answer_key'] ?? null;
+                }
+
+                \App\Models\Question::create($payload);
+            }
+
+            // Sinkronkan counter di tabel tests dengan jumlah pertanyaan aktual (hindari double-increment)
+            $mcqCount = DB::table('questions')->where('test_id', $test->id)->where('type', 'mcq')->count();
+            $essayCount = DB::table('questions')->where('test_id', $test->id)->where('type', 'essay')->count();
+            DB::table('tests')->where('id', $test->id)->update([
+                'mcq_count' => $mcqCount,
+                'essay_count' => $essayCount,
+            ]);
         });
 
-        return redirect()
-            ->route('teacher.tests.show', $test)
-            ->with('success', 'Soal massal berhasil disimpan.');
+        // Recompute current counts after transaction
+        $currentMcq = DB::table('questions')->where('test_id', $test->id)->where('type', 'mcq')->count();
+        $currentEssay = DB::table('questions')->where('test_id', $test->id)->where('type', 'essay')->count();
+
+        // If we just saved MCQ and there remain essay questions to input (based on intended total), redirect to essay build
+        if ($validated['type'] === 'mcq') {
+            $remainingEssay = max(0, $intendedEssayTotal - $currentEssay);
+            if ($remainingEssay > 0) {
+                return redirect()->route('teacher.questions.bulk.build', ['test' => $test->id, 'type' => 'essay', 'count' => $remainingEssay])
+                    ->with('success', 'Soal MCQ disimpan. Lanjutkan input massal soal Esai.');
+            }
+        }
+
+        // Similarly, if we just saved essay and there remain mcq (rare), redirect
+        if ($validated['type'] === 'essay') {
+            $remainingMcq = max(0, $intendedMcqTotal - $currentMcq);
+            if ($remainingMcq > 0) {
+                return redirect()->route('teacher.questions.bulk.build', ['test' => $test->id, 'type' => 'mcq', 'count' => $remainingMcq])
+                    ->with('success', 'Soal Esai disimpan. Lanjutkan input massal soal MCQ.');
+            }
+        }
+
+        return redirect()->route('teacher.tests.show', $test)->with('success', 'Soal massal berhasil disimpan.');
             
     }
 

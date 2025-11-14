@@ -12,11 +12,12 @@ class Test extends Model
     use HasFactory;
     protected $fillable = [
         'title',
+        'subject',
         'description',
         'duration_minutes',
-        'start_at',
+        'starts_at',
         'ends_at',
-        'mq_count',
+        'mcq_count',
         'essay_count',
         'shuffle_questions',
         'created_by'

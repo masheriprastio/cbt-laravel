@@ -27,6 +27,22 @@ Route::middleware(['auth','role:guru'])
 
     });
 
+// Admin user management
+Route::middleware(['auth','role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [\App\Http\Controllers\Admin\UserController::class, 'create'])->name('users.create');
+        Route::post('/users', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('users.store');
+        Route::get('/users/{user}/edit', [\App\Http\Controllers\Admin\UserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
+        Route::post('/users/{user}/reset', [\App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset');
+        Route::get('/users/{user}/print', [\App\Http\Controllers\Admin\UserController::class, 'printForm'])->name('users.print.form');
+        Route::post('/users/{user}/print', [\App\Http\Controllers\Admin\UserController::class, 'printConfirm'])->name('users.print.confirm');
+    });
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -93,6 +109,8 @@ Route::middleware(['auth','role:guru'])
       Route::resource('tests', TeacherTestController::class)->names('tests');
     // Monitor exam sessions (guru)
     Route::get('/monitor', [App\Http\Controllers\ExamSessionController::class, 'index'])->name('monitor.index');
+    Route::post('/monitor/{session}/resume', [App\Http\Controllers\ExamSessionController::class, 'resume'])->name('monitor.resume');
+    Route::delete('/monitor/{session}', [App\Http\Controllers\ExamSessionController::class, 'destroy'])->name('monitor.destroy');
       Route::get('/questions/select', [TeacherQuestionController::class, 'select'])
             ->name('questions.select');
 
@@ -143,7 +161,12 @@ Route::post('editor/upload', [\App\Http\Controllers\Teacher\EditorController::cl
 Route::get('/halo', function () {
     return 'Halo';
 });
+// Admin shortcut: show admin users dashboard at /users (before SPA catch-all)
+Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])
+    ->middleware(['auth','role:admin'])
+    ->name('users.index');
 
+// SPA catch-all (kept last)
 Route::get('/{any}', function () {
     return view('spa');
 })->where('any', '.*');
