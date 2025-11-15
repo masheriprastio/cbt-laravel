@@ -128,4 +128,108 @@ class UserController extends Controller
         }
         return view('admin.users.print', ['user' => $user, 'passwordPlain' => $plain ?? '']);
     }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt,xlsx,xls',
+            'role' => 'required|in:siswa,guru,admin'
+        ]);
+
+        $file = $request->file('file');
+        $role = $request->input('role');
+        $imported = 0;
+        $errors = [];
+
+        try {
+            // Read CSV file
+            if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+                $header = null;
+                $lineNum = 0;
+                while (($row = fgetcsv($handle, 1000, ',')) !== false) {
+                    $lineNum++;
+                    
+                    // Use first row as header
+                    if ($header === null) {
+                        $header = array_map('strtolower', array_map('trim', $row));
+                        continue;
+                    }
+
+                    if (count($row) < 1 || empty($row[0])) continue;
+
+                    $data = array_combine($header, array_map('trim', $row));
+                    $name = $data['nama'] ?? $data['name'] ?? '';
+                    $email = $data['email'] ?? '';
+                    $username = $data['username'] ?? '';
+
+                    if (empty($name)) {
+                        $errors[] = "Baris $lineNum: Nama tidak boleh kosong";
+                        continue;
+                    }
+
+                    // Generate username if not provided
+                    if (empty($username)) {
+                        $username = Str::slug(substr($name, 0, 30)) . rand(100, 999);
+                        $counter = 0;
+                        while (User::where('username', $username)->exists() && $counter < 10) {
+                            $username = Str::slug(substr($name, 0, 30)) . rand(1000, 9999);
+                            $counter++;
+                        }
+                    }
+
+                    // Check if user exists
+                    if (User::where('username', $username)->exists()) {
+                        $errors[] = "Baris $lineNum: Username '$username' sudah ada";
+                        continue;
+                    }
+
+                    // Generate password for students
+                    $password = Str::random(8);
+                    
+                    try {
+                        User::create([
+                            'name' => $name,
+                            'email' => !empty($email) ? $email : null,
+                            'username' => $username,
+                            'password' => bcrypt($password),
+                            'role' => $role
+                        ]);
+                        $imported++;
+                    } catch (\Exception $e) {
+                        $errors[] = "Baris $lineNum: {$e->getMessage()}";
+                    }
+                }
+                fclose($handle);
+            }
+        } catch (\Exception $e) {
+            return back()->withErrors(['file' => 'Gagal membaca file: ' . $e->getMessage()]);
+        }
+
+        $message = "Berhasil import $imported pengguna";
+        if (!empty($errors)) {
+            $message .= ". Errors: " . implode('; ', array_slice($errors, 0, 5));
+        }
+
+        return back()->with('import_message', $message);
+    }
+
+    public function printAll(Request $request)
+    {
+        $role = $request->input('role');
+        $fromDate = $request->input('from_date');
+
+        $query = User::orderBy('created_at', 'desc');
+
+        if (!empty($role)) {
+            $query->where('role', $role);
+        }
+
+        if (!empty($fromDate)) {
+            $query->where('created_at', '>=', $fromDate);
+        }
+
+        $users = $query->get();
+
+        return view('admin.users.print-all', compact('users'));
+    }
 }

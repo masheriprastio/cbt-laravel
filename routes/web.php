@@ -23,24 +23,7 @@ Route::middleware(['auth','role:guru'])
     ->prefix('teacher')
     ->name('teacher.')
     ->group(function () {
-        // SPA shell
-
-    });
-
-// Admin user management
-Route::middleware(['auth','role:admin'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
-        Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
-        Route::get('/users/create', [\App\Http\Controllers\Admin\UserController::class, 'create'])->name('users.create');
-        Route::post('/users', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('users.store');
-        Route::get('/users/{user}/edit', [\App\Http\Controllers\Admin\UserController::class, 'edit'])->name('users.edit');
-        Route::put('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
-        Route::delete('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
-        Route::post('/users/{user}/reset', [\App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset');
-        Route::get('/users/{user}/print', [\App\Http\Controllers\Admin\UserController::class, 'printForm'])->name('users.print.form');
-        Route::post('/users/{user}/print', [\App\Http\Controllers\Admin\UserController::class, 'printConfirm'])->name('users.print.confirm');
+        // SPA shell (empty - routes defined below)
     });
 
 
@@ -48,13 +31,24 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Dashboard - accessible to all authenticated users
 Route::get('/dashboard', function () {
     $user = Auth::user();
-    $stats = ['tests' => 0];
+    $stats = ['tests' => 0, 'mcq' => 0, 'essay' => 0, 'active' => 0];
     $latestTests = [];
-    if ($user) {
+    if ($user && $user->role === 'guru') {
         // count tests created by this user (guru)
         $stats['tests'] = Test::where('created_by', $user->id)->count();
+        $stats['mcq'] = \App\Models\Question::whereHas('test', function($q) use ($user) {
+            $q->where('created_by', $user->id);
+        })->where('type', 'mcq')->count();
+        $stats['essay'] = \App\Models\Question::whereHas('test', function($q) use ($user) {
+            $q->where('created_by', $user->id);
+        })->where('type', 'essay')->count();
+        $stats['active'] = Test::where('created_by', $user->id)
+            ->where('starts_at', '<=', now())
+            ->where('ends_at', '>=', now())
+            ->count();
         $latestTests = Test::where('created_by', $user->id)->orderBy('created_at','desc')->limit(5)->get();
     }
 
@@ -67,15 +61,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::resource('tests', TeacherTestController::class)
              ->names('tests');
-
-             
 });
 
-
-// Soal
-    Route::get('tests/{test}/questions/create', [TeacherQuestionController::class, 'create'])->name('questions.create');
-    Route::post('tests/{test}/questions', [TeacherQuestionController::class, 'store'])->name('questions.store');
-    Route::delete('questions/{question}', [TeacherQuestionController::class, 'destroy'])->name('questions.destroy');
+// Soal routes
+Route::get('tests/{test}/questions/create', [TeacherQuestionController::class, 'create'])->name('questions.create');
+Route::post('tests/{test}/questions', [TeacherQuestionController::class, 'store'])->name('questions.store');
+Route::delete('questions/{question}', [TeacherQuestionController::class, 'destroy'])->name('questions.destroy');
 
     // Route::middleware(['auth','role:guru'])
     // ->prefix('teacher')
@@ -91,6 +82,35 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 
+// ============================================================
+// ADMIN ROUTES - Must come before SPA catch-all
+// ============================================================
+Route::middleware(['auth','role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [\App\Http\Controllers\Admin\UserController::class, 'create'])->name('users.create');
+        Route::post('/users', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('users.store');
+        Route::get('/users/{user}/edit', [\App\Http\Controllers\Admin\UserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
+        Route::post('/users/{user}/reset', [\App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset');
+        Route::get('/users/{user}/print', [\App\Http\Controllers\Admin\UserController::class, 'printForm'])->name('users.print.form');
+        Route::post('/users/{user}/print', [\App\Http\Controllers\Admin\UserController::class, 'printConfirm'])->name('users.print.confirm');
+        Route::post('/users/import', [\App\Http\Controllers\Admin\UserController::class, 'import'])->name('users.import');
+        Route::get('/users/print-all', [\App\Http\Controllers\Admin\UserController::class, 'printAll'])->name('users.print.all');
+    });
+
+// Alias route for admin users (shortcut to /admin/users)
+Route::get('/users', function () {
+    return redirect()->route('admin.users.index');
+})->middleware(['auth','role:admin'])->name('users.index');
+
+// ============================================================
+// TEACHER ROUTES - Must come before SPA catch-all
+// ============================================================
+
 // Temporary demo exam (no auth) for quick student-mode testing
 Route::get('/exam/demo', [TemporaryExamController::class, 'demo'])->name('exam.demo');
 Route::post('/exam/demo/submit', [TemporaryExamController::class, 'submit'])->name('exam.demo.submit');
@@ -101,6 +121,8 @@ Route::get('/exam/demo/create-sample', [TemporaryExamController::class, 'createS
 Route::post('/exam/session/start', [App\Http\Controllers\ExamSessionController::class, 'start'])->name('exam.session.start');
 Route::post('/exam/session/{session}/violation', [App\Http\Controllers\ExamSessionController::class, 'violation'])->name('exam.session.violation');
 
+// TEACHER ROUTES - Must come before SPA catch-all
+// ============================================================
 Route::middleware(['auth','role:guru'])
   ->prefix('teacher')
   ->as('teacher.')
@@ -154,19 +176,10 @@ Route::post('editor/upload', [\App\Http\Controllers\Teacher\EditorController::cl
 
   });
 
- 
-
-
-
 Route::get('/halo', function () {
     return 'Halo';
 });
-// Admin shortcut: show admin users dashboard at /users (before SPA catch-all)
-Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])
-    ->middleware(['auth','role:admin'])
-    ->name('users.index');
 
-// SPA catch-all (kept last)
-Route::get('/{any}', function () {
-    return view('spa');
-})->where('any', '.*');
+// ============================================================
+// SPA CATCH-ALL - Keep this LAST
+// ============================================================

@@ -5,6 +5,35 @@
 @section('breadcrumb') Home / Dashboard @endsection
 
 @section('content')
+  {{-- Admin Section --}}
+  @if(Auth::user()->role === 'admin')
+    <div class="mb-4">
+      <h4 class="fw-semibold mb-3">Manajemen Admin</h4>
+      <div class="row g-3">
+        <div class="col-12 col-md-6 col-lg-4">
+          <a href="{{ route('admin.users.index') }}" class="card shadow-sm text-decoration-none text-dark h-100">
+            <div class="card-body">
+              <h5 class="card-title">👥 Manajemen Pengguna</h5>
+              <p class="card-text small">Kelola pengguna, import siswa, cetak kartu login</p>
+              <span class="text-primary fw-semibold">Buka →</span>
+            </div>
+          </a>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+          <a href="{{ route('admin.users.create') }}" class="card shadow-sm text-decoration-none text-dark h-100">
+            <div class="card-body">
+              <h5 class="card-title">➕ Tambah Pengguna</h5>
+              <p class="card-text small">Buat pengguna baru: siswa, guru, atau admin</p>
+              <span class="text-success fw-semibold">Buat →</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+    <hr>
+  @endif
+
+  {{-- Regular Stats --}}
   <div class="row g-3">
     <div class="col-12 col-md-6 col-lg-3">
       <div class="card shadow-sm">
@@ -57,18 +86,18 @@
           </tr>
         </thead>
         <tbody>
-          @forelse(($latestTests ?? []) as $t)
+          @forelse($latestTests as $t)
             <tr>
               <td>{{ $t->title }}</td>
               <td>{{ $t->duration_minutes }} m</td>
-              <td>{{ $t->mcq_count }}</td>
-              <td>{{ $t->essay_count }}</td>
+              <td>{{ $t->questions()->where('type', 'mcq')->count() }}</td>
+              <td>{{ $t->questions()->where('type', 'essay')->count() }}</td>
               <td class="text-end">
-                <a href="{{ route('teacher.tests.show',$t) }}" class="btn btn-sm btn-primary">Kelola</a>
+                <a href="{{ route('teacher.tests.show', $t) }}" class="btn btn-sm btn-primary">Kelola</a>
               </td>
             </tr>
           @empty
-            <tr><td colspan="5" class="text-center text-secondary">Belum ada data</td></tr>
+            <tr><td colspan="5" class="text-center text-secondary">Belum ada ujian</td></tr>
           @endforelse
         </tbody>
       </table>
