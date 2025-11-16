@@ -20,8 +20,12 @@
             <span class="label">Username:</span>
             <span class="value font-mono">{{ $user->username }}</span>
           </div>
+          <div class="card-field">
+            <span class="label">Password:</span>
+            <span class="value font-mono">123456</span>
+          </div>
           <div class="card-divider"></div>
-          <p class="text-xs text-gray-600 mb-2">Setiap peserta harus menyimpan username untuk login ujian. Password akan diberikan oleh pengawas ujian.</p>
+          <p class="text-xs text-gray-600 mb-2">Gunakan username dan password di atas untuk login ke sistem ujian. Jaga kerahasiaan kartu ini.</p>
         </div>
         <div class="card-footer">
           <p class="text-xs">{{ $user->created_at?->format('d M Y H:i') }}</p>
