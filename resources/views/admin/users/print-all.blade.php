@@ -17,12 +17,16 @@
             <span class="value">{{ $user->name }}</span>
           </div>
           <div class="card-field">
+            <span class="label">Kelas:</span>
+            <span class="value">{{ $user->class ?? '-' }}</span>
+          </div>
+          <div class="card-field">
             <span class="label">Username:</span>
             <span class="value font-mono">{{ $user->username }}</span>
           </div>
           <div class="card-field">
             <span class="label">Password:</span>
-            <span class="value font-mono">123456</span>
+            <span class="value font-mono">{{ $passwords[$user->id] ?? '123456' }}</span>
           </div>
           <div class="card-divider"></div>
           <p class="text-xs text-gray-600 mb-2">Gunakan username dan password di atas untuk login ke sistem ujian. Jaga kerahasiaan kartu ini.</p>

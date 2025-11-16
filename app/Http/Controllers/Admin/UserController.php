@@ -62,12 +62,30 @@ class UserController extends Controller
             $passwordHash = bcrypt($passwordPlain);
         }
 
+        $email = $data['email'];
+
+        // Generate a placeholder email if it's empty to satisfy the NOT NULL constraint.
+        if (empty($email)) {
+            if ($data['role'] === 'siswa') {
+                $email = $data['username'] . '@example.com';
+            } else {
+                // Create a unique placeholder for other roles (guru, admin)
+                $baseEmail = strtolower(Str::slug($data['name'])) . '@example.com';
+                $email = $baseEmail;
+                $i = 1;
+                while (User::where('email', $email)->exists()) {
+                    $email = strtolower(Str::slug($data['name'])) . '_' . $i++ . '@example.com';
+                }
+            }
+        }
+
         $user = User::create([
             'name' => $data['name'],
-            'email' => $data['email'] ?? null,
+            'email' => $email,
             'password' => $passwordHash,
             'role' => $data['role'],
             'username' => $data['username'] ?? null,
+            'class' => $data['class'] ?? null,
         ]);
 
         if ($data['role'] === 'siswa') {
@@ -81,16 +99,35 @@ class UserController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:200',
-            'email' => 'nullable|email|unique:users,email,'.$user->id,
+            'email' => 'nullable|string|max:255|unique:users,email,'.$user->id,
             'role' => 'required|in:guru,siswa,admin',
             'username' => 'nullable|string|max:100|unique:users,username,'.$user->id,
         ]);
 
+        $email = $data['email'];
+
+        // Generate a placeholder email if it's empty to satisfy the NOT NULL constraint.
+        if (empty($email)) {
+            if ($data['role'] === 'siswa') {
+                $usernameForEmail = $data['username'] ?? $user->username;
+                $email = $usernameForEmail . '@example.com';
+            } else {
+                // Create a unique placeholder for other roles (guru, admin)
+                $baseEmail = strtolower(Str::slug($data['name'])) . '@example.com';
+                $email = $baseEmail;
+                $i = 1;
+                while (User::where('email', $email)->where('id', '!=', $user->id)->exists()) {
+                    $email = strtolower(Str::slug($data['name'])) . '_' . $i++ . '@example.com';
+                }
+            }
+        }
+
         $user->update([
             'name' => $data['name'],
-            'email' => $data['email'] ?? null,
+            'email' => $email,
             'role' => $data['role'],
             'username' => $data['username'] ?? $user->username,
+            'class' => $data['class'] ?? null,
         ]);
 
         return redirect()->route('admin.users.index')->with('success','User diperbarui.');
@@ -146,6 +183,7 @@ class UserController extends Controller
                 $header = null;
                 $lineNum = 0;
                 $nameIndex = -1;
+                $classIndex = -1;
 
                 // Find the last WK username to determine the starting number
                 $lastWkUser = User::where('username', 'like', 'WK%')->orderByRaw('CAST(SUBSTRING(username, 3) AS UNSIGNED) DESC')->first();
@@ -164,6 +202,7 @@ class UserController extends Controller
                         if ($nameIndex === false) {
                             throw new \Exception("Format template tidak sesuai. Pastikan ada kolom 'Nama Siswa' di file Anda.");
                         }
+                        $classIndex = array_search('kelas', $header);
                         continue;
                     }
 
@@ -179,6 +218,8 @@ class UserController extends Controller
                     $username = 'WK' . str_pad($nextWkNumber, 3, '0', STR_PAD_LEFT);
                     $nextWkNumber++;
 
+                    $class = ($classIndex !== false && isset($row[$classIndex])) ? trim($row[$classIndex]) : null;
+
                     try {
                         $user = User::create([
                             'name' => $name,
@@ -186,6 +227,7 @@ class UserController extends Controller
                             'username' => $username,
                             'password' => bcrypt($passwordPlain),
                             'role' => 'siswa',
+                            'class' => $class,
                         ]);
 
                         $newlyCreatedUsers[] = [
@@ -220,7 +262,7 @@ class UserController extends Controller
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
-        $content = "No;Nama Siswa\n1;Nama Siswa Contoh 1\n2;Nama Siswa Contoh 2";
+        $content = "No;Nama Siswa;Kelas\n1;Nama Siswa Contoh 1;X-A\n2;Nama Siswa Contoh 2;X-B";
 
         return Response::make($content, 200, $headers);
     }
@@ -236,12 +278,34 @@ class UserController extends Controller
             $query->where('role', $role);
         }
 
+        if ($role === 'siswa') {
+            $query->whereHas('rooms');
+        }
+
         if (!empty($fromDate)) {
             $query->where('created_at', '>=', $fromDate);
         }
 
         $users = $query->get();
+        $passwords = [];
 
-        return view('admin.users.print-all', compact('users'));
+        if ($role === 'siswa') {
+            $generatedNumbers = [];
+            foreach ($users as $user) {
+                if ($user->role === 'siswa') {
+                    do {
+                        $randomNumber = str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT);
+                    } while (in_array($randomNumber, $generatedNumbers));
+
+                    $generatedNumbers[] = $randomNumber;
+                    $newPasswordPlain = 'WK2025' . $randomNumber;
+                    $user->password = bcrypt($newPasswordPlain);
+                    $user->save();
+                    $passwords[$user->id] = $newPasswordPlain;
+                }
+            }
+        }
+
+        return view('admin.users.print-all', compact('users', 'passwords'));
     }
 }

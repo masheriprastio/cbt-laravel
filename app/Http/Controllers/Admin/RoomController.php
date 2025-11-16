@@ -80,4 +80,10 @@ class RoomController extends Controller
 
         return redirect()->route('admin.rooms.index')->with('success', 'Ruangan berhasil dihapus.');
     }
+
+    public function participants(Room $room)
+    {
+        $participants = $room->users()->select('name')->get();
+        return response()->json($participants);
+    }
 }

@@ -30,26 +30,26 @@
       </tr>
     </thead>
     <tbody class="bg-white divide-y">
-    @foreach($users as $u)
+    @foreach($users as $user)
       <tr class="text-gray-700 hover:bg-gray-50">
-        <td class="px-4 py-3 text-sm">{{ $u->id }}</td>
-        <td class="px-4 py-3 text-sm">{{ $u->name }}</td>
-        <td class="px-4 py-3 text-sm">{{ $u->email ?? '-' }}</td>
-        <td class="px-4 py-3 text-sm font-mono text-blue-600">{{ $u->username ?? '-' }}</td>
-        <td class="px-4 py-3 text-sm"><span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">{{ $u->role }}</span></td>
-        <td class="px-4 py-3 text-sm text-gray-500">{{ $u->created_at?->format('d M Y') ?? '-' }}</td>
+        <td class="px-4 py-3 text-sm">{{ $user->id }}</td>
+        <td class="px-4 py-3 text-sm">{{ $user->name }}</td>
+        <td class="px-4 py-3 text-sm">{{ $user->email ?? '-' }}</td>
+        <td class="px-4 py-3 text-sm font-mono text-blue-600">{{ $user->username ?? '-' }}</td>
+        <td class="px-4 py-3 text-sm"><span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">{{ $user->role }}</span></td>
+        <td class="px-4 py-3 text-sm text-gray-500">{{ $user->created_at?->format('d M Y') ?? '-' }}</td>
         <td class="px-4 py-3 text-sm flex gap-1">
-          <a href="{{ route('admin.users.edit', $u) }}" class="py-1 px-2 rounded-md bg-blue-100 text-blue-800 hover:bg-blue-200 text-xs">Edit</a>
-          <form method="POST" action="{{ route('admin.users.destroy', $u) }}" style="display:inline" onsubmit="return confirm('Hapus pengguna ini?');">
+          <a href="{{ route('admin.users.edit', $user) }}" class="py-1 px-2 rounded-md bg-blue-100 text-blue-800 hover:bg-blue-200 text-xs">Edit</a>
+          <form method="POST" action="{{ route('admin.users.destroy', $user) }}" style="display:inline" onsubmit="return confirm('Hapus pengguna ini?');">
             @csrf
             @method('DELETE')
             <button class="py-1 px-2 rounded-md bg-red-100 text-red-800 hover:bg-red-200 text-xs">Hapus</button>
           </form>
-          <form method="POST" action="{{ route('admin.users.reset', $u) }}" style="display:inline" onsubmit="return confirm('Reset password?');">
+          <form method="POST" action="{{ route('admin.users.reset', $user) }}" style="display:inline" onsubmit="return confirm('Reset password?');">
             @csrf
             <button class="py-1 px-2 rounded-md bg-yellow-100 text-yellow-800 hover:bg-yellow-200 text-xs">Reset</button>
           </form>
-          <a href="{{ route('admin.users.print.form', $u) }}" class="py-1 px-2 rounded-md bg-green-100 text-green-800 hover:bg-green-200 text-xs">Cetak</a>
+          <a href="{{ route('admin.users.print.form', $user) }}" class="py-1 px-2 rounded-md bg-green-100 text-green-800 hover:bg-green-200 text-xs">Cetak</a>
         </td>
       </tr>
     @endforeach

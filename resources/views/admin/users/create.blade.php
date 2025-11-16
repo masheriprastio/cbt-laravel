@@ -24,6 +24,12 @@
       @error('role') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
     </div>
 
+    <div id="class-field" class="mb-4" style="display:none;">
+      <label for="class" class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+      <input type="text" name="class" id="class" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('class') }}">
+      @error('class') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+    </div>
+
     <div class="mb-4">
       <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
       <input type="text" name="username" id="username" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Kosongkan untuk auto-generate (siswa)" value="{{ old('username') }}">
@@ -56,15 +62,20 @@
     const passwordField = document.getElementById('password-field');
     const passwordRequired = document.getElementById('password-required');
     const passwordInput = document.getElementById('password');
+    const classField = document.getElementById('class-field');
     
     if (role === 'siswa') {
       passwordField.style.display = 'none';
       passwordRequired.textContent = '';
       passwordInput.removeAttribute('required');
+      classField.style.display = 'block';
     } else if (role === 'guru' || role === 'admin') {
       passwordField.style.display = 'block';
       passwordRequired.textContent = '*';
       passwordInput.setAttribute('required', 'required');
+      classField.style.display = 'none';
+    } else {
+      classField.style.display = 'none';
     }
   }
   
