@@ -296,7 +296,11 @@ class UserController extends Controller
                     do {
                         $randomNumber = str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT);
                     } while (in_array($randomNumber, $generatedNumbers));
+<<<<<<< HEAD
 
+=======
+                    
+>>>>>>> 539d1cb (Deskripsi perubahan lokal saya)
                     $generatedNumbers[] = $randomNumber;
                     $newPasswordPlain = 'WK2025' . $randomNumber;
                     $user->password = bcrypt($newPasswordPlain);
