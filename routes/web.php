@@ -99,7 +99,9 @@ Route::middleware(['auth','role:admin'])
         Route::get('/users/{user}/print', [\App\Http\Controllers\Admin\UserController::class, 'printForm'])->name('users.print.form');
         Route::post('/users/{user}/print', [\App\Http\Controllers\Admin\UserController::class, 'printConfirm'])->name('users.print.confirm');
         Route::post('/users/import', [\App\Http\Controllers\Admin\UserController::class, 'import'])->name('users.import');
+        Route::get('/users/import-template', [\App\Http\Controllers\Admin\UserController::class, 'importTemplate'])->name('users.import-template');
         Route::get('/users/print-all', [\App\Http\Controllers\Admin\UserController::class, 'printAll'])->name('users.print.all');
+        Route::resource('rooms', \App\Http\Controllers\Admin\RoomController::class);
     });
 
 // Alias route for admin users (shortcut to /admin/users)

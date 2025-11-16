@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Response;
 
 class UserController extends Controller
 {
@@ -16,7 +17,7 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = User::orderBy('created_at','desc')->paginate(30);
+        $users = User::orderBy('id','asc')->get();
         return view('admin.users.index', compact('users'));
     }
 
@@ -132,85 +133,96 @@ class UserController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:csv,txt,xlsx,xls',
-            'role' => 'required|in:siswa,guru,admin'
+            'file' => 'required|file|mimes:csv,txt',
         ]);
 
         $file = $request->file('file');
-        $role = $request->input('role');
-        $imported = 0;
+        $newlyCreatedUsers = [];
         $errors = [];
+        $passwordPlain = '123456'; // Standard password for all imported students
 
         try {
-            // Read CSV file
             if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
                 $header = null;
                 $lineNum = 0;
-                while (($row = fgetcsv($handle, 1000, ',')) !== false) {
+                $nameIndex = -1;
+
+                // Find the last WK username to determine the starting number
+                $lastWkUser = User::where('username', 'like', 'WK%')->orderByRaw('CAST(SUBSTRING(username, 3) AS UNSIGNED) DESC')->first();
+                $lastWkNumber = $lastWkUser ? (int)substr($lastWkUser->username, 2) : 0;
+                $nextWkNumber = $lastWkNumber + 1;
+
+                while (($row = fgetcsv($handle, 1000, ';')) !== false) {
                     $lineNum++;
-                    
-                    // Use first row as header
+
                     if ($header === null) {
                         $header = array_map('strtolower', array_map('trim', $row));
+                        $nameIndex = array_search('nama siswa', $header);
+                        if ($nameIndex === false) {
+                            $nameIndex = array_search('nama', $header);
+                        }
+                        if ($nameIndex === false) {
+                            throw new \Exception("Format template tidak sesuai. Pastikan ada kolom 'Nama Siswa' di file Anda.");
+                        }
                         continue;
                     }
 
-                    if (count($row) < 1 || empty($row[0])) continue;
+                    if (empty(array_filter($row))) continue;
 
-                    $data = array_combine($header, array_map('trim', $row));
-                    $name = $data['nama'] ?? $data['name'] ?? '';
-                    $email = $data['email'] ?? '';
-                    $username = $data['username'] ?? '';
+                    $name = trim($row[$nameIndex] ?? '');
 
                     if (empty($name)) {
-                        $errors[] = "Baris $lineNum: Nama tidak boleh kosong";
+                        $errors[] = "Baris $lineNum: Nama siswa tidak boleh kosong.";
                         continue;
                     }
 
-                    // Generate username if not provided
-                    if (empty($username)) {
-                        $username = Str::slug(substr($name, 0, 30)) . rand(100, 999);
-                        $counter = 0;
-                        while (User::where('username', $username)->exists() && $counter < 10) {
-                            $username = Str::slug(substr($name, 0, 30)) . rand(1000, 9999);
-                            $counter++;
-                        }
-                    }
+                    $username = 'WK' . str_pad($nextWkNumber, 3, '0', STR_PAD_LEFT);
+                    $nextWkNumber++;
 
-                    // Check if user exists
-                    if (User::where('username', $username)->exists()) {
-                        $errors[] = "Baris $lineNum: Username '$username' sudah ada";
-                        continue;
-                    }
-
-                    // Generate password for students
-                    $password = Str::random(8);
-                    
                     try {
-                        User::create([
+                        $user = User::create([
                             'name' => $name,
-                            'email' => !empty($email) ? $email : null,
+                            'email' => $username . '@example.com',
                             'username' => $username,
-                            'password' => bcrypt($password),
-                            'role' => $role
+                            'password' => bcrypt($passwordPlain),
+                            'role' => 'siswa',
                         ]);
-                        $imported++;
+
+                        $newlyCreatedUsers[] = [
+                            'name' => $name,
+                            'username' => $username,
+                            'password' => $passwordPlain,
+                        ];
+
                     } catch (\Exception $e) {
-                        $errors[] = "Baris $lineNum: {$e->getMessage()}";
+                        $errors[] = "Baris $lineNum: Gagal membuat pengguna '{$name}'. Error: " . $e->getMessage();
                     }
                 }
                 fclose($handle);
             }
         } catch (\Exception $e) {
-            return back()->withErrors(['file' => 'Gagal membaca file: ' . $e->getMessage()]);
+            return back()->withErrors(['file' => 'Gagal memproses file: ' . $e->getMessage()]);
         }
 
-        $message = "Berhasil import $imported pengguna";
-        if (!empty($errors)) {
-            $message .= ". Errors: " . implode('; ', array_slice($errors, 0, 5));
-        }
+        // Store results in session to show on the results page
+        session()->flash('import_results', [
+            'newlyCreatedUsers' => $newlyCreatedUsers,
+            'errors' => $errors,
+        ]);
 
-        return back()->with('import_message', $message);
+        return redirect()->route('admin.users.index')->with('show_import_results', true);
+    }
+
+    public function importTemplate()
+    {
+        $filename = "template_import_siswa.csv";
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+        $content = "No;Nama Siswa\n1;Nama Siswa Contoh 1\n2;Nama Siswa Contoh 2";
+
+        return Response::make($content, 200, $headers);
     }
 
     public function printAll(Request $request)

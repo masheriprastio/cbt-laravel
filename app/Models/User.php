@@ -21,7 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role'
+        'role',
+        'username'
     ];
 
     /**
@@ -43,6 +44,11 @@ class User extends Authenticatable
     }
     public function isSiswa() : bool{
         return $this->role === 'siswa';
+    }
+
+    public function rooms()
+    {
+        return $this->belongsToMany(Room::class);
     }
 
     /**

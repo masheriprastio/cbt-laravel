@@ -14,9 +14,7 @@ return new class extends Migration
         Schema::create('answers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('test_id')->constrained('tests')->cascadeOnDelete();
-            // $table->foreignId('question_id')->constrained('questions')->cascadeOnDelete();
-            $table->dropForeign(['question_id']);
-            $table->foreign('question_id')->references('id')->on('questions')->onDelete('cascade');
+            $table->foreignId('question_id')->constrained('questions')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->char('selected_option',1)->nullable();
             $table->text('answers_text')->nullable();

@@ -10,6 +10,9 @@
   {{-- Aktifkan baris di bawah HANYA jika style.scss sudah lengkap --}}
   @vite(['resources/js/spike/src/scss/style.scss'])
 
+  {{-- DataTables --}}
+  <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.tailwindcss.css">
+
   @stack('head')
 </head>
 <body class="h-full bg-slate-50 antialiased">
@@ -34,6 +37,11 @@
       </main>
     </div>
   </div>
+
+  {{-- jQuery & DataTables --}}
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+  <script src="https://cdn.datatables.net/2.0.8/js/dataTables.tailwindcss.js"></script>
 
   @stack('scripts')
 </body>
