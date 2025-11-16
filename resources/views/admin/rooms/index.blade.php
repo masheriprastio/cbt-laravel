@@ -60,6 +60,8 @@
             <td class="py-2 px-4 border-b text-sm text-gray-700">{{ $room->name }}</td>
             <td class="py-2 px-4 border-b text-sm text-gray-700">{{ $room->users_count }}</td>
             <td class="py-2 px-4 border-b text-sm text-gray-700">
+              <button data-room-id="{{ $room->id }}" class="view-participants-btn text-green-500 hover:text-green-700 font-medium">Lihat Peserta</button>
+              <span class="text-gray-300 mx-1">|</span>
               <a href="{{ route('admin.rooms.edit', $room->id) }}" class="text-blue-500 hover:text-blue-700 font-medium">Edit</a>
               <span class="text-gray-300 mx-1">|</span>
               <form action="{{ route('admin.rooms.destroy', $room->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus ruangan ini?');">
@@ -78,6 +80,37 @@
         @endforelse
       </tbody>
     </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="participants-modal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+      <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+    </div>
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="sm:flex sm:items-start">
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+              Daftar Peserta
+            </h3>
+            <div class="mt-2">
+              <ul id="participants-list" class="list-disc list-inside">
+                <!-- Participants will be loaded here -->
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+        <button type="button" id="close-modal-btn" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+          Tutup
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 @endsection
@@ -104,6 +137,37 @@
           "zeroRecords": "Tidak ada data yang cocok ditemukan",
           "emptyTable": "Tidak ada data yang tersedia di tabel"
         }
+      });
+
+      $('.view-participants-btn').on('click', function() {
+        var roomId = $(this).data('room-id');
+        var modal = $('#participants-modal');
+        var list = $('#participants-list');
+
+        list.html('<li>Loading...</li>');
+        modal.removeClass('hidden');
+
+        $.ajax({
+          url: '/admin/rooms/' + roomId + '/participants',
+          method: 'GET',
+          success: function(data) {
+            list.empty();
+            if (data.length > 0) {
+              $.each(data, function(index, participant) {
+                list.append('<li>' + participant.name + '</li>');
+              });
+            } else {
+              list.append('<li>Tidak ada peserta di ruangan ini.</li>');
+            }
+          },
+          error: function() {
+            list.html('<li>Gagal memuat data.</li>');
+          }
+        });
+      });
+
+      $('#close-modal-btn').on('click', function() {
+        $('#participants-modal').addClass('hidden');
       });
     });
   </script>
