@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip if the answers table is already created (idempotent)
+        if (Schema::hasTable('answers')) {
+            return;
+        }
+
         Schema::create('answers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('test_id')->constrained('tests')->cascadeOnDelete();
