@@ -1,6 +1,6 @@
 @php
   $role = auth()->user()->role ?? null;
-  $isGuru  = $role === 'guru';
+  $isGuru  = in_array($role, ['guru','teacher']);
   $isSiswa = $role === 'siswa';
 @endphp
 
@@ -56,7 +56,7 @@
 @endif
 
 
-      @if($isSiswa)
+      @if($isSiswa && Route::has('student.dashboard'))
         <li class="nav-item mt-2 px-3 text-uppercase small text-secondary">Siswa</li>
         <li class="nav-item">
           <a class="nav-link d-flex align-items-center {{ request()->routeIs('student.dashboard') ? 'active fw-semibold' : '' }}"
