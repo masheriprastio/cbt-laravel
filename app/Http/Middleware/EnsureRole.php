@@ -15,9 +15,20 @@ class EnsureRole
      */
     public function handle(Request $request, Closure $next, string $role): Response
     {
-        if (!$request->user() || $request->user()->role !== $role) {
-abort(403, 'Akses ditolak.');
-}
-return $next($request);
+        $user = $request->user();
+
+        if (!$user) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        // Support comma-separated role lists, e.g. role:guru,admin
+        $allowed = array_map('trim', explode(',', $role));
+
+        // Grant access if user's role is in the allowed list, or if user is admin
+        if (!in_array($user->role, $allowed, true) && $user->role !== 'admin') {
+            abort(403, 'Akses ditolak.');
+        }
+
+        return $next($request);
     }
 }

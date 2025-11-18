@@ -5,29 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>@yield('title','CBT Admin')</title>
 
-  {{-- Flexy assets (sudah kamu salin ke public/vendor/flexy) --}}
+  {{-- Flexy Bootstrap Lite assets (HARUS ada di public/vendor/flexy) --}}
   <link rel="stylesheet" href="{{ asset('vendor/flexy/assets/libs/bootstrap/dist/css/bootstrap.min.css') }}">
-  <link rel="stylesheet" href="{{ asset('vendor/flexy/assets/css/style.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('vendor/flexy/assets/css/styles.min.css') }}">
 
-  {{-- TinyMCE config (optional). Configure via config/services.php using the
-       TINYMCE_LICENSE and TINYMCE_BASE_URL environment variables. --}}
-  @php $tm = config('services.tinymce', ['license'=>'','base_url'=>'/vendor/tinymce']); @endphp
-  @if(!empty($tm['license']))
-    <script>window.tinymceLicenseKey = "{{ $tm['license'] }}";</script>
-  @endif
-  @if(!empty($tm['base_url']))
-    <script>window.tinymceBaseUrl = "{{ $tm['base_url'] }}";</script>
-  @endif
-
-  @vite(['resources/js/app.js']) {{-- Vite umum proyekmu --}}
+  {{-- Vite app (kalau ada) --}}
+  @vite(['resources/js/app.js'])
   @stack('styles')
 </head>
 <body>
-  <div id="main-wrapper" class="d-flex">
+  {{-- ==== Wajib: id#main-wrapper + data-* agar sidebarmenu.js bekerja benar ==== --}}
+  <div id="main-wrapper"
+       data-layout="vertical"
+       data-sidebartype="full"             {{-- full | mini-sidebar | iconbar --}}
+       data-sidebar-position="fixed"
+       data-header-position="fixed"
+       data-boxed-layout="full">
+
+    {{-- Sidebar --}}
     @includeIf('partials.flexy.sidebar')
-    <div class="page-wrapper w-100">
+
+    {{-- Page wrapper --}}
+    <div class="page-wrapper">
+      {{-- Topbar --}}
       @includeIf('partials.flexy.topbar')
-      <div class="container-fluid py-4">
+
+      {{-- Body wrapper (required by Flexy CSS for correct spacing) --}}
+      <div class="body-wrapper">
+
+        {{-- Content --}}
+        <div class="container-fluid py-4">
         <div class="d-flex align-items-center justify-content-between mb-3">
           <div>
             <h4 class="mb-0">@yield('page_title','Dashboard')</h4>
@@ -36,19 +43,21 @@
           @yield('page_actions')
         </div>
 
-  @includeWhen(session('success'),'partials.flexy.alert-success', ['msg'=>session('success')])
-  {{-- Do not show validation errors on the public dashboard route; skip for 'dashboard' name to avoid stale messages --}}
-  @php $currentRoute = \Request::route() ? \Request::route()->getName() : null; @endphp
-  @if($currentRoute !== 'dashboard')
-    @includeWhen($errors->any(),'partials.flexy.alert-errors')
-  @endif
+        @includeWhen(session('success'),'partials.flexy.alert-success', ['msg'=>session('success')])
+        @includeWhen($errors->any(),'partials.flexy.alert-errors')
 
         @yield('content')
       </div>
+
+        </div>
+
+      </div>
+
       @includeIf('partials.flexy.footer')
     </div>
   </div>
 
+  {{-- JS Flexy (urutan penting) --}}
   <script src="{{ asset('vendor/flexy/assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
   <script src="{{ asset('vendor/flexy/assets/js/sidebarmenu.js') }}"></script>
   <script src="{{ asset('vendor/flexy/assets/js/app.min.js') }}"></script>
